@@ -1,7 +1,3 @@
-根据你提供的 CS61A 课程作业仓库的说明，我为你修改并创建了一个适用于 **CS61C** 课程的版本。以下是 **CS61C Assignments Repository** 的文档内容：
-
----
-
 # CS61C Assignments Repository
 
 *English | [中文](#中文说明)*
@@ -97,7 +93,3 @@ You can fork this repository to create your own working environment, track your 
 ### 免责声明
 - 本仓库为 **非官方** 项目，与 UC Berkeley 及 CS61C 教学团队无关。
 - 所有课程内容版权归 UC Berkeley CS61C 团队所有，仅供 **个人学习和练习** 使用，请遵守学术诚信规定。
-
----
-
-这个版本的文档适用于 UC Berkeley 的 **CS61C** 课程，涵盖了课程作业、实验和项目的内容。你可以根据具体需求调整和更新其中的细节，特别是对于每个作业、实验和项目的文件结构。
