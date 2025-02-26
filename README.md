@@ -7,7 +7,7 @@
 ## English
 
 ### Overview
-This repository contains **all **labs**, and **projects** for the UC Berkeley CS61C course. It is designed to facilitate practice and deepen your understanding of the course material.
+This repository contains all **labs**, and **projects** for the UC Berkeley CS61C course. It is designed to facilitate practice and deepen your understanding of the course material.
 
 You can fork this repository to create your own working environment, track your progress, and store your solutions.
 
