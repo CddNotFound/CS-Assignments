@@ -64,7 +64,7 @@ vector_t *vector_new() {
     /* Check our return value to make sure we got memory */
     /* YOUR CODE HERE */
     if (retval == NULL) {
-        free(retval);
+        // free(retval);
         allocation_failed();
     }
 
