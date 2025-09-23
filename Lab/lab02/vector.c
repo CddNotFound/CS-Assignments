@@ -112,8 +112,11 @@ int vector_get(vector_t *v, size_t loc) {
    Remember, you need to free up ALL the memory that was allocated. */
 void vector_delete(vector_t *v) {
     /* YOUR SOLUTION HERE */
-    free(v);
-    v = NULL;
+    if (v != NULL) {
+        free(v -> data);
+        free(v);
+        v = NULL;
+    }
     return ;
 }
 
@@ -132,7 +135,6 @@ void vector_set(vector_t *v, size_t loc, int value) {
         // printf("%d %d %d\n", len, newLen, value);
         int* new_data = realloc(v -> data, sizeof(int) * newLen);
         if (new_data == NULL) {
-            // free(v);
             allocation_failed();
         }
         v -> data = new_data;
