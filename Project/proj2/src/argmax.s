@@ -18,17 +18,32 @@ argmax:
 
     # Prologue
 
+    addi t0, zero, 1
+    blt a1, t0, empty
+
+    li t0, 0           # i
+    mv t1, a0  # a[i]
+    li a0, 0           # maxPos
+    li t2, -10000      # maxValue
 
 loop_start:
-
+    bge t0, a1, loop_end
+    lw t3, 0(t1)       # a[i]
+    bge t2, t3, loop_continue
+    mv a0, t0
+    mv t2, t3
 
 loop_continue:
-
+    addi t0, t0, 1
+    addi t1, t1, 4
+    j loop_start
 
 loop_end:
-    
 
     # Epilogue
 
-
     ret
+
+empty:
+    addi a0, zero, 77
+    ret 
