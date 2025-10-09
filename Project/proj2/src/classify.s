@@ -22,6 +22,10 @@ classify:
     #   main.s <M0_PATH> <M1_PATH> <INPUT_PATH> <OUTPUT_PATH>
 
 begin:
+
+    li t0, 5
+    bne a0, t0, arg_not_match
+
     addi sp, sp, -36
     sw s0, 0(sp)
     sw s1, 4(sp)
@@ -149,6 +153,9 @@ begin:
     jal argmax
     mv t2, a0   # t2: position
     
+    # save classification
+    addi sp, sp, -4
+    sw t2, 0(sp)
 
     # Print classification
 
@@ -157,6 +164,12 @@ begin:
     jal print_int
 
     # Print newline afterwards for clarity
+
+    li a1, 10
+    jal print_char
+
+    lw a0, 0(sp)
+    addi sp, sp, 4
 
 end:
 
