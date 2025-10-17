@@ -1,24 +1,25 @@
 Scenario 1
-    1.
-    2.
-    3.
+    1.Because step size in bytes is exactly equal to cache size in bytes.
+    2.0.0
+    3.step size, 1
 
 Scenario 2
-    1.
-    2.
-    3.
+    1.2
+    2.0.75, MHHH
+    3.1
 
 Scenario 3
-    1.
-    2.
-    3.
-    4.
-    5.
+    1.L1 0.50, L2 0.00, Overall 0.50
+    2.[32 of L1 accesses], [16 of L1 misses]
+    3.16
+    4.rep count
+    5.=, =, +, =
 
 --- lines below are ignored by the AG ---
 
-Checkoff Question 1:
-Checkoff Question 2:
-Checkoff Question 3:
-Checkoff Question 4:
-Checkoff Question 5:
+Checkoff Question 1: Since step size in bytes is exactly equal to cache size in bytes. Each position we try to access in memory share the same block in cache. So when we get the new index, the tag of a[index] is different from the tag of a[index - (step size) / 4], which is the current tag in cache. We always get a conflict miss.
+Checkoff Question 2: step size, array size
+Checkoff Question 3: We fetch 16 bytes for once. Since the step size if 8 bytes, the action we'll take in the same block is read address X, write address X, read address X + 8, write address X + 8. So we'll just got an compulsory miss at the first action. The rest 3 actions will hit.
+Checkoff Question 4: The cache size is the same as the array size, so conflict miss will never happen. In the first repeat, there will be a compulsory miss in each block. From the second repeat, the tag in cache is always the same as the tag in memory. We'll always get a hit.
+Checkoff Question 5: We should split the array into chunks that fit in the size of cache. For each chunk, we apply all of the updates to it before moving on to the next chunk.
+Checkoff Question 6: The L2 cache size in bytes is the same as the array size in bytes, so conflict miss will never happen in L2 cache.
