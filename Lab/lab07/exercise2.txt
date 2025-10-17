@@ -1,8 +1,8 @@
-1.
-2.
+1.jki, kji
+2.ikj, kij
 
 --- lines below are ignored by the AG ---
 
-Checkoff Question 1:
-Checkoff Question 2:
-Checkoff Question 3:
+Checkoff Question 1: The stride of both jki and kji is [1, 0, 1]. CPU caches has spatial locality, which always fetch the neighbouring memory. Array A and C will be accessed contigious mostly, so there will be most hit in the inner loop for each array.
+Checkoff Question 2: The stride is [0, n, n], which will cause lots of misses in array B and C.
+Checkoff Question 3: It make a difference on the stride of these three arrays, which will cause differenct cache performance because of spatial locality.
