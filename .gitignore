@@ -5,4 +5,17 @@
 *.class
 out/
 gen/
-.vscode/
+.vscode/NJU - Compiler//src/*
+NJU - Compiler/!/src/*.java
+NJU - Compiler/!/src/*.g4
+NJU - Compiler//src/*Lexer.java
+NJU - Compiler//src/*Parser.java 
+NJU - Compiler//src/*ParserBaseListener.java
+NJU - Compiler//src/*ParserBaseVisitor.java
+NJU - Compiler//src/*ParserListener.java
+NJU - Compiler//src/*ParserVisitor.java
+NJU - Compiler//classes
+NJU - Compiler/.DS_Store
+NJU - Compiler//out
+NJU - Compiler//.idea
+NJU - Compiler//Lab.iml
