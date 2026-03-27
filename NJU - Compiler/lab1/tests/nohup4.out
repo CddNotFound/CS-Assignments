@@ -124,7 +124,7 @@ INTEGER_CONST 7 at Line 13.
 COMMA , at Line 13.
 IDENT u at Line 13.
 ASSIGN = at Line 13.
-INTEGER_CONST -22 at Line 13.
+INTEGER_CONST 10 at Line 13.
 COMMA , at Line 13.
 IDENT v at Line 13.
 ASSIGN = at Line 13.
@@ -132,7 +132,7 @@ INTEGER_CONST 11 at Line 13.
 COMMA , at Line 13.
 IDENT w at Line 13.
 ASSIGN = at Line 13.
-INTEGER_CONST 173 at Line 13.
+INTEGER_CONST 205 at Line 13.
 COMMA , at Line 13.
 IDENT x at Line 13.
 ASSIGN = at Line 13.
