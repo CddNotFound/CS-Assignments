@@ -1,9 +1,5 @@
 lexer grammar SysYLexer;
 
-@header {
-    package sysylexer;
-}
-
 // prog : stat* EOF;
 
 // stat : block
@@ -16,7 +12,7 @@ lexer grammar SysYLexer;
 
 // block : '{' expr* '}' ;
 
-// expr : ID '(' exprList? ')'
+// expr : IDENT '(' exprList? ')'
 //      | expr '[' expr ']'
 //      | '-' expr
 //      | '!' expr
@@ -24,44 +20,64 @@ lexer grammar SysYLexer;
 //      | ls = expr (op = '+' | op = '-') rs = expr
 //      | ls = expr (op = '==' | op = '!=') rs = expr
 //      | '(' expr ')'
-//      | ID
-//      | ConstInt
+//      | IDENT
+//      | INTEGER_CONST
 //      ;
 
 // exprList : expr (',' expr)* ; 
 
-// funcDecl : basicType ID '(' parameters? ')' block ;
+// funcDecl : basicType IDENT '(' parameters? ')' block ;
 
-// parameter : basicType ID ;
+// parameter : basicType IDENT ;
 // parameters : parameter (',' parameter)* ; 
 
-// varDecl : basicType ID ('=' expr)? ';' ; 
+// varDecl : basicType IDENT ('=' expr)? ';' ; 
 
 // basicType : 'int' ;
 
-ID : '_'+ WORD*
+INT : 'int' ;
+RETURN : 'return' ;
+IF : 'if' ;
+ELSE : 'else' ; 
+
+IDENT : '_'+ WORD*
    | (LETTER)+WORD*;
 
-ConstInt : Decimal
-         | '0' ('b' | 'B') Binary
-         | '0' Octal
-         | '0' ('x' | 'X') Hexadecimal
-         | '0'
-         ; 
+// INTEGER_CONST : Decimal
+//          | '0' ('b' | 'B') Binary
+//          | '0' Octal
+//          | '0' ('x' | 'X') Hexadecimal
+//          | '0'
+//          ; 
 
-Binary : '1'[1-2]* ;
+Binary : '0' ('b' | 'B') '1'[1-2]* ;
 // Quaternary : [1-3][0-3]* ; 
-Octal : [1 - 7][0 - 7]* ;
-Decimal : [1-9]NUMBER* ; 
-Hexadecimal : [1-9a-fA-F][0-9a-fA-F]* ; 
-
-INT : 'int' ;
-RETURN : 'return' ; 
-L_PAPEN : '(' ;
-R_PAPEN : ')' ;
+Octal : '0'[0-7]+ ;
+Decimal : [1-9]NUMBER* | '0'; 
+Hexadecimal : '0'('x' | 'X')[0-9a-fA-F]+ ; 
+ 
+L_PAREN : '(' ;
+R_PAREN : ')' ;
 L_BRACE : '{' ;
 R_BRACE : '}' ;
+L_BRACKT : '[' ;
+R_BRACKT : ']' ; 
+SEMICOLON : ';' ; 
+COMMA : ',' ; 
+
+PLUS : '+' ;
+MINUS : '-' ;
+ASSIGN : '=' ;
+NOT : '!' ; 
+
+
 
 fragment LETTER : [a-zA-Z] ;
 fragment NUMBER : [0-9] ;
 fragment WORD : '_' | LETTER | NUMBER ;
+
+WS : [ \t\n\r]+ -> skip;
+
+DOCS_COMMENT: '/**' .*? '*/' -> skip ;
+SL_COMMENT : '//' .*? ('\n' | EOF) -> skip ;
+ML_COMMENT : '/*' .*? '*/' -> skip ; 
