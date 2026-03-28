@@ -1,20 +1,22 @@
-int func(int arg) {
-    int l;
-    l = - - - arg;
-    return l;
+const int a = 1;
+int b = 2;
+int A[10] = {8, 7, 4};
+
+void print(int x) {
 }
 
-int main() {
-    int x, y;
-    x = 02;
-    y = 0x1;
-    x = x - 1 + y;
-    if (+-!!!x) {
-        x = - - -2;
+int func() {
+    int c;
+    {
+        print(a);
+        if (cond) {
+            c = a + b;
+            {
+            }
+        } else if (cond2) {
+            return ;
+        } else
+            c = 1;
     }
-    else {
-        x = 1 + + y;
-    }
-    func(x);
-    return 0;
+    return -3;
 }

@@ -1,54 +1,43 @@
 lexer grammar SysYLexer;
 
-// prog : stat* EOF;
-
-// stat : block
-//      | varDecl
-//      | funcDecl
-//      | 'if' '(' expr ')' stat ('else' block)? stat
-//      | RETURN expr? ';'
-//      | expr ';'
-//      ;
-
-// block : '{' expr* '}' ;
-
-// expr : IDENT '(' exprList? ')'
-//      | expr '[' expr ']'
-//      | '-' expr
-//      | '!' expr
-//      | ls = expr (op = '*' | op = '/') rs = expr
-//      | ls = expr (op = '+' | op = '-') rs = expr
-//      | ls = expr (op = '==' | op = '!=') rs = expr
-//      | '(' expr ')'
-//      | IDENT
-//      | INTEGER_CONST
-//      ;
-
-// exprList : expr (',' expr)* ; 
-
-// funcDecl : basicType IDENT '(' parameters? ')' block ;
-
-// parameter : basicType IDENT ;
-// parameters : parameter (',' parameter)* ; 
-
-// varDecl : basicType IDENT ('=' expr)? ';' ; 
-
-// basicType : 'int' ;
-
+CONST : 'const';
 INT : 'int' ;
+VOID : 'void' ;
+WHILE : 'while' ;
+BREAK : 'break' ;
 RETURN : 'return' ;
 IF : 'if' ;
 ELSE : 'else' ; 
+CONTINUE : 'continue' ;
+
+PLUS : '+' ;
+MINUS : '-' ;
+MUL : '*' ;
+DIV : '/' ; 
+MOD : '%' ;
+ASSIGN : '=' ;
+EQ : '==' ;
+NEQ : '!=' ;
+LT : '<' ; 
+GT : '>' ;
+LE : '<=' ;
+GE : '>=' ;
+NOT : '!' ; 
+BIT_AND : '&' ;
+BIT_OR : '|' ;
+LOGICAL_AND : '&&' ;
+LOGICAL_OR : '||';
+COMMA : ',' ; 
+SEMICOLON : ';' ; 
+
+INTEGER_CONST : Decimal
+         | Binary
+         | Octal
+         | Hexadecimal
+         ; 
 
 IDENT : '_'+ WORD*
    | (LETTER)+WORD*;
-
-// INTEGER_CONST : Decimal
-//          | '0' ('b' | 'B') Binary
-//          | '0' Octal
-//          | '0' ('x' | 'X') Hexadecimal
-//          | '0'
-//          ; 
 
 Binary : '0' ('b' | 'B') '1'[1-2]* ;
 // Quaternary : [1-3][0-3]* ; 
@@ -62,22 +51,13 @@ L_BRACE : '{' ;
 R_BRACE : '}' ;
 L_BRACKT : '[' ;
 R_BRACKT : ']' ; 
-SEMICOLON : ';' ; 
-COMMA : ',' ; 
-
-PLUS : '+' ;
-MINUS : '-' ;
-ASSIGN : '=' ;
-NOT : '!' ; 
-
-
 
 fragment LETTER : [a-zA-Z] ;
 fragment NUMBER : [0-9] ;
 fragment WORD : '_' | LETTER | NUMBER ;
 
-WS : [ \t\n\r]+ -> skip;
+WS : [ \t\n\r]+ -> channel(HIDDEN);
 
-DOCS_COMMENT: '/**' .*? '*/' -> skip ;
-SL_COMMENT : '//' .*? ('\n' | EOF) -> skip ;
-ML_COMMENT : '/*' .*? '*/' -> skip ; 
+DOCS_COMMENT: '/**' .*? '*/' -> channel(HIDDEN) ;
+SL_COMMENT : '//' .*? ('\n' | EOF) -> channel(HIDDEN) ;
+ML_COMMENT : '/*' .*? '*/' -> channel(HIDDEN) ; 
