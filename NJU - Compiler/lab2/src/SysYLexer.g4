@@ -58,6 +58,6 @@ fragment WORD : '_' | LETTER | NUMBER ;
 
 WS : [ \t\n\r]+ -> channel(HIDDEN);
 
-DOCS_COMMENT: '/**' .*? '*/' -> channel(HIDDEN) ;
-SL_COMMENT : '//' .*? ('\n' | EOF) -> channel(HIDDEN) ;
-ML_COMMENT : '/*' .*? '*/' -> channel(HIDDEN) ; 
+DOCS_COMMENT: '/**' .*? '*/' -> skip ;
+SL_COMMENT : '//' .*? ('\n' | EOF) -> skip ;
+ML_COMMENT : '/*' .*? '*/' -> skip ; 
