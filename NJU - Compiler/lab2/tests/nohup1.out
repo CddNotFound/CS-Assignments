@@ -1,4 +1,2 @@
-[96mint[0m [93mmain[0m[91m([0m[91m)[0m [91m{[0m
-    [96;4mint[0m[95m [0m[95;4ma[0m[91;4m=[0m[35;4m0[0m[91;4m;[0m
-    [96mreturn[0m[97m [0m[91m-[0m[97ma[0m[91m;[0m
-[91m}[0m
+Error type B at Line 2: missing INTEGER_CONST at ']'.
+Error type B at Line 3: mismatched input ']' expecting {'+', '-', '*', '/', '%', '&', '|', ';', '['}.

@@ -96,5 +96,6 @@ varDecl : basicType IDENT (ASSIGN exp)? (COMMA IDENT (ASSIGN exp)?)* SEMICOLON
         | basicType IDENT (L_BRACKT number R_BRACKT)+ (ASSIGN arrayAssign)? SEMICOLON
         ;
 
-arrayAssign : L_BRACE arrayNumber? R_BRACE ;
-arrayNumber : exp (COMMA exp)* ;
+arrayAssign : arrayNumber
+            | L_BRACE arrayNumber (COMMA arrayNumber)* R_BRACE ;
+arrayNumber : L_BRACE exp (COMMA exp)* R_BRACE;
