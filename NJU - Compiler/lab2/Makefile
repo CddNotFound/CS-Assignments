@@ -15,7 +15,7 @@ JAVAFILE = src/*.java
 ANTLRPATH = $(shell find /usr/local/lib -name "antlr-*-complete.jar")
 
 compile: antlr
-	$(call git_commit,"make")
+# 	$(call git_commit,"make")
 	rm -rf src/.antlr
 	mkdir -p classes
 	$(JAVAC) -classpath $(ANTLRPATH) $(JAVAFILE) -d classes
@@ -29,7 +29,7 @@ antlr: $(LFILE) $(PFILE)
 
 
 test: compile
-	$(call git_commit, "test")
+# 	$(call git_commit, "test")
 	rm -f ./tests/nohup*.out
 	nohup java -classpath ./classes:$(ANTLRPATH) Main ./tests/test1.sysy > ./tests/nohup1.out &
 	nohup java -classpath ./classes:$(ANTLRPATH) Main ./tests/test2.sysy > ./tests/nohup2.out &
