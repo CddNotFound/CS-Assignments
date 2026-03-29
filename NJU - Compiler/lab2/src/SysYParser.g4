@@ -12,7 +12,7 @@ stat : block                                              # CodeBlock
      | IF L_PAREN cond R_PAREN stat (ELSE stat)?          # IfElse
      | RETURN exp? ';'                                    # Return
      | exp ';'                                            # Expd
-     | WHILE L_PAREN cond R_PAREN block                   # WhileLoop
+     | WHILE L_PAREN cond R_PAREN stat                    # WhileLoop
      | lVal ASSIGN exp SEMICOLON                          # VarAssign
      ;
 

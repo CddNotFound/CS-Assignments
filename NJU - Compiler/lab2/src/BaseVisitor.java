@@ -1,5 +1,6 @@
 import org.antlr.v4.runtime.tree.AbstractParseTreeVisitor;
 import org.antlr.v4.runtime.tree.TerminalNode;
+import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.Vocabulary;
 import org.antlr.v4.runtime.misc.*;
@@ -10,6 +11,9 @@ public class BaseVisitor<T> extends SysYParserBaseVisitor<T>{
     HashMap<Integer, TokenStyle> mp;
     // int parenCnt, bracktCnt, braceCnt;
     int braceCnt;
+    int level;
+    int color;
+    boolean underline, blockInBlock, declare, unaryOp;
     public static final int[] colorList = new int[6];
     int a, b;
 
@@ -21,12 +25,52 @@ public class BaseVisitor<T> extends SysYParserBaseVisitor<T>{
 
     public BaseVisitor() {
         mp = new HashMap<Integer, TokenStyle>();
-        // parenCnt = 0;
+        level = 0;
         braceCnt = 0;
-        // braceCnt = 0;
+        color = 0;
+        underline = false;
+        unaryOp = false;
+        blockInBlock = false;
+        declare = false;
         a = 0;
         b = 0;
     }
+
+    private void printTab() {
+        for (int i = 1; i <= level; i++) {
+            System.out.println("    ");
+        }
+    }
+    private void println() {
+        System.out.println();
+    }
+
+    private void printToken(String text, int color, boolean underline) {
+        if (color == 0) {
+            System.out.print(text);
+        } else if (underline && !text.trim().isEmpty()){
+                System.out.print("\033[" + color + ";4m" + text + "\033[0m");
+        } else {
+            System.out.print("\033[" + color + "m" + text + "\033[0m");
+        }
+    }
+
+    private void printPreviousSpace(int type) {
+        if ((type >= 12 && type <= 21 || type >= 23 || type <= 26)
+         || ((type == 10 || type == 11) && !unaryOp)) {
+            System.out.println(" ");
+        }
+    }
+
+    private void printFollowingSpace(int type) {
+        if ((type >= 1 && type <= 3 || type == 7 || type == 8 || type == 4 || type == 6)
+         || (type >= 12 && type <= 21 || type >= 23 || type <= 26)
+         || ((type == 10 || type == 11) && !unaryOp)
+         || type == 27) {
+            System.out.print(" ");
+        }
+    }
+
 
     @Override public T visitProg(SysYParser.ProgContext ctx) {
         // Vocabulary voc = SysYParser.VOCABULARY;
@@ -48,128 +92,229 @@ public class BaseVisitor<T> extends SysYParserBaseVisitor<T>{
         String text = token.getText();
         int idx = token.getTokenIndex();
 
+        int sColor = color;
+        boolean sUnderline = underline;
+
         TokenStyle style = mp.getOrDefault(idx, new TokenStyle());
         if (type >= 1 && type <= 9) { // key word : Bright Cyan
-            // System.out.print("Keyword : " + text + "\n");
             style.color = 96;
         } else if (type >= 10 && type <= 28) { // operator : Bright Red
-            // System.out.print("Operator : " + text + "\n");
             style.color = 91;
         } else if (type == 29) { // const int : Magenta
-            // System.out.print("Const int : " + text + "\n");
             style.color = 35;
-        // } else if (type == 35) {
-        //     style.color = colorList[parenCnt % 6];
-        //     ++parenCnt;
-        // } else if (type == 36) {
-        //     --parenCnt;
-        //     style.color = colorList[parenCnt % 6];
         } else if (type == 37 || type == 35 || type == 39) {
             style.color = colorList[braceCnt % 6];
             ++braceCnt;
         } else if (type == 38 || type == 36 || type == 40) {
             --braceCnt;
             style.color = colorList[braceCnt % 6];
-        } 
-        // else if (type == 39) {
-        //     style.color = colorList[bracktCnt % 6];
-        //     ++bracktCnt;
-        // } else if (type == 40) {
-        //     --bracktCnt;
-        //     style.color = colorList[bracktCnt % 6];
-        // }
-        mp.put(idx, style);
-        // System.out.println("Terminal : Tpye = " + token.getType() + " = "  + node.getText());
+        }
+
+        printPreviousSpace(type);
+
+        if (declare) {
+            printToken(text, color, underline);
+        } else if (type == 37) {
+            if (blockInBlock) {
+                printTab();
+                printToken(text, color, underline);
+                println();
+                level += 1;
+            } else {
+                System.out.print(" ");
+                printToken(text, color, underline);
+                println();
+                level += 1;
+            }
+        } else if (type == 38) {
+            level -= 1;
+            printTab();
+            printToken(text, color, underline);
+            println();
+        }
+
+        printFollowingSpace(type);
+
+        color = sColor;
+        underline = sUnderline;
 
         return (T)this.defaultResult();
     }
 
+    @Override public T visitCodeBlock(SysYParser.CodeBlockContext ctx) {
+    
+        ParseTree parent = ctx.getParent();
+        if (parent instanceof SysYParser.CodeBlockContext) {
+            blockInBlock = true;
+        } else {
+            blockInBlock = false;
+        }
+
+        T tmp = visitChildren(ctx);
+    
+        return tmp;
+    }
+
     @Override public T visitFunctionDecl(SysYParser.FunctionDeclContext ctx) {
-        String text = ctx.funcDecl().IDENT().getText();
-        int idx = ctx.funcDecl().IDENT().getSourceInterval().a;
+        println();
+        printTab();
+        int sColor = color;
+        boolean sUnderline = underline;
 
-        TokenStyle style = mp.getOrDefault(idx, new TokenStyle());
-        style.color = 93;
-        mp.put(idx, style);
-        // System.out.print("FunctionDecl : " + text + "\n");
+        color = 93;
 
-        Interval interval = ctx.getSourceInterval();
-        // System.out.println("varDecl token interval : [" + interval.a + ", " + interval.b + "]");
+        T tmp = visitChildren(ctx);
 
-        // setDefualtColor(interval.a, interval.b, 95);
-        // modifyUnderline(interval.a, interval.b, true);
+        color = sColor;
+        underline = sUnderline;
 
-        return visitChildren(ctx); 
+        println();
+        
+        return tmp;
     }
     
     @Override public T visitFunctionCall(SysYParser.FunctionCallContext ctx) {
-        String text = ctx.IDENT().getText();
-        int idx = ctx.IDENT().getSourceInterval().a;
+        int sColor = color;
+        boolean sUnderline = underline;
 
-        TokenStyle style = mp.getOrDefault(idx, new TokenStyle());
-        style.color = 93;
-        mp.put(idx, style);
+        color = 93;
+        underline = false;
 
-        // System.out.print("FunctionCall : " + text + "\n");
-        
-    
-        return visitChildren(ctx);
+        T tmp = visitChildren(ctx);
+
+        color = sColor;
+        underline = sUnderline;
+
+        return tmp;
     }
 
-	@Override public T visitVariableDecl(SysYParser.VariableDeclContext ctx) {
-        Interval interval = ctx.getSourceInterval();
-        // System.out.println("varDecl token interval : [" + interval.a + ", " + interval.b + "]");
+	@Override public T visitVariableDecl(SysYParser.VariableDeclContext ctx) {    
+        stmtTab(ctx.getParent());
+        int sColor = color;
+        boolean sUnderline = underline, sDeclare = declare;
 
-        setDefualtColor(interval.a, interval.b, 95);
-        modifyUnderline(interval.a, interval.b, true);
-        // TokenStyle style = mp.getOrDefault(idx, new TokenStyle());
-        // mp.put(idx, style);
+        color = 95;
+        underline = true;
+        declare = true;
+
+        T tmp = visitChildren(ctx);
+
+        color = sColor;
+        underline = sUnderline;
+        declare = sDeclare;
+
+        println();
         
-        return visitChildren(ctx);
+        return tmp;
     }
 
     @Override public T visitIfElse(SysYParser.IfElseContext ctx) {
-        Interval interval = ctx.getSourceInterval();
-        // System.out.println("varDecl token interval : [" + interval.a + ", " + interval.b + "]");
+        ParseTree parent = ctx.getParent();
+        if ((parent instanceof SysYParser.IfElseContext)
+         || parent instanceof SysYParser.WhileLoopContext) {
+            SysYParser.IfElseContext ftr = (SysYParser.IfElseContext) ctx.getParent();
+            if (ftr.stat().size() > 1 && ftr.stat(1) == ctx) {
+                System.out.print(" ");
+            } else {
+                println();
+                level += 1;
+                printTab();
+                level -= 1;
+            }
+        } else {
+            printTab();
+        }
+        int sColor = color;
+        boolean sUnderline = underline;
 
-        setDefualtColor(interval.a, interval.b, 97);
-        return visitChildren(ctx);
-    }
-	@Override public T visitReturn(SysYParser.ReturnContext ctx) {
-        Interval interval = ctx.getSourceInterval();
-        // System.out.println("varDecl token interval : [" + interval.a + ", " + interval.b + "]");
+        color = 97;
+        underline = false;
 
-        setDefualtColor(interval.a, interval.b, 97);
+        T tmp = visitChildren(ctx);
 
-        return visitChildren(ctx);
-    }
-	@Override public T visitExpd(SysYParser.ExpdContext ctx) {
-        Interval interval = ctx.getSourceInterval();
-        // System.out.println("varDecl token interval : [" + interval.a + ", " + interval.b + "]");
+        color = sColor;
+        underline = sUnderline;
 
-        setDefualtColor(interval.a, interval.b, 97);
+        println();
         
-        return visitChildren(ctx);
+        return tmp;
     }
 
-    public void modifyColor(int a, int b, int color) {
-        for (int i = a; i <= b; i++) {
-            TokenStyle style = mp.getOrDefault(i, new TokenStyle());
-            style.color = color;
-            mp.put(i, style);
-        }
+	@Override public T visitReturn(SysYParser.ReturnContext ctx) {
+        stmtTab(ctx.getParent());
+        int sColor = color;
+        boolean sUnderline = underline;
+
+        color = 97;
+        underline = false;
+
+        T tmp = visitChildren(ctx);
+
+        color = sColor;
+        underline = sUnderline;
+
+        println();
+        
+        return tmp;
     }
-    public void modifyUnderline(int a, int b, boolean underline) {
-        for (int i = a; i <= b; i++) {
-            TokenStyle style = mp.getOrDefault(i, new TokenStyle());
-            style.underline = underline;
-            mp.put(i, style);
-        }
+    
+	@Override public T visitExpd(SysYParser.ExpdContext ctx) {
+        stmtTab(ctx.getParent());
+        int sColor = color;
+        boolean sUnderline = underline;
+
+        color = 97;
+        underline = false;
+
+        T tmp = visitChildren(ctx);
+
+        color = sColor;
+        underline = sUnderline;
+
+        println();
+        
+        return tmp;
     }
-    public void setDefualtColor(int a, int b, int color) {
-        for (int i = a; i <= b; i++) {
-            TokenStyle style = mp.getOrDefault(i, new TokenStyle(color, false));
-            mp.put(i, style);
+
+    @Override public T visitVarAssign(SysYParser.VarAssignContext ctx) {
+        stmtTab(ctx.getParent());
+        int sColor = color;
+        boolean sUnderline = underline;
+
+        color = 97;
+        underline = false;
+
+        T tmp = visitChildren(ctx);
+
+        color = sColor;
+        underline = sUnderline;
+
+        println();
+        
+        return tmp;
+    }
+
+    @Override public T visitUnaryOp1(SysYParser.UnaryOp1Context ctx) {
+        boolean sUnaryOp = unaryOp;
+
+        unaryOp = true;
+
+        T tmp = visitChildren(ctx);
+
+        unaryOp = sUnaryOp;
+
+        return tmp;
+    }
+
+    public void stmtTab(ParseTree parent) {
+        if (parent instanceof SysYParser.IfElseContext
+         || parent instanceof SysYParser.WhileLoopContext) {
+            println();
+            level += 1;
+            printTab();
+            level -= 1;
+        } else {
+            printTab();
         }
     }
 }
