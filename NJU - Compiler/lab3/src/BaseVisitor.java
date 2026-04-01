@@ -24,7 +24,7 @@ public class BaseVisitor extends SysYParserBaseVisitor<T>{
     int a, b;
 
     Scope currentScope;
-
+    // ArrayList<Type> functionList;
     ArrayList<String> errorList;
 
     static {
@@ -36,6 +36,7 @@ public class BaseVisitor extends SysYParserBaseVisitor<T>{
     public BaseVisitor() {
         // mp = new HashMap<Integer, TokenStyle>();
         this.errorList = new ArrayList<String>();
+        // functionList = new ArrayList<Type>();
         this.level = 0;
         this.braceCnt = 0;
         this.color = 0;
@@ -223,12 +224,35 @@ public class BaseVisitor extends SysYParserBaseVisitor<T>{
         int sColor = color;
         boolean sUnderline = underline;
         String funcName = ctx.IDENT().getText();
-        Type funcType = currentScope.resolve(funcName);
+        Type resolveType = currentScope.resolve(funcName);
 
         // Error type 2: Undefined function.
-        if (funcType == null) {
+        if (resolveType == null) {
             Token startToken = ctx.getStart();
             errorList.add("Error type 2 at Line " + startToken.getLine() + ": Undefined function:" + ctx.IDENT().getText() + ".");
+        }
+
+        // Error type 10: Called object type Int is not a function.
+        if (resolveType instanceof IntType) {
+            Token startToken = ctx.getStart();
+            errorList.add("Error type 10 at Line " + startToken.getLine() + ": Called object type Int is not a function.");
+        }
+
+        // Error type 8: Incompatible function arguments.
+        FunctionType funcType = (FunctionType)resolveType;
+        int paraCnt = funcType.parametersType.size();
+        int callCnt = ctx.funcRParams().param().size();
+        if (paraCnt != callCnt) {
+            Token startToken = ctx.getStart();
+            errorList.add("Error type 8 at Line " + startToken.getLine() + ": Incompatible function arguments.");
+        }
+        for (int i = 0; i < paraCnt; i++) {
+            Type paraType = funcType.parametersType.get(i);
+            Type callType = visit(ctx.funcRParams().param(i)).type;
+            if (paraType.getClass() != callType.getClass()) {
+                Token startToken = ctx.getStart();
+                errorList.add("Error type 8 at Line " + startToken.getLine() + ": Incompatible function arguments.");
+            }
         }
 
         color = 93;
@@ -336,6 +360,14 @@ public class BaseVisitor extends SysYParserBaseVisitor<T>{
         underline = sUnderline;
         
         exitStmt(ctx.getParent());
+
+        // Error type 7: Unmatched return type.
+        Type retType = tmp.type;
+        if (!(retType instanceof IntType)) {
+            Token startToken = ctx.getStart();
+            errorList.add("Error type 7 at Line " + startToken.getLine() + ": Unmatched return type: expected Int, but found " + getType(retType) + ".");
+        }
+
         return tmp;
     }
     
@@ -370,12 +402,20 @@ public class BaseVisitor extends SysYParserBaseVisitor<T>{
         underline = sUnderline;
         
         exitStmt(ctx.getParent());
-        // Error Type 5: Unmatched assign type.
         T leftInfo = visit(ctx.lVal());
         T rightInfo = visit(ctx.exp());
-        if (leftInfo.type != rightInfo.type) {
+        
+        // Error Type 11: Cannot assign a value to a function 'f'.
+        if (leftInfo.type instanceof FunctionType) {
             Token startToken = ctx.getStart();
-            errorList.add("Error type 5 at Line " + startToken.getLine() + ": Unmatched assign type:" + getType(leftInfo.type) + " and " + getType(rightInfo.type) + ".");)
+            errorList.add("Error type 11 at Line " + startToken.getLine() + ": Cannot assign a value to a function " + ctx.lVal().getText() + ".");
+        }
+
+
+        // Error Type 5: Unmatched assign type.
+        if (leftInfo.type.getClass() != rightInfo.type.getClass()) {
+            Token startToken = ctx.getStart();
+            errorList.add("Error type 5 at Line " + startToken.getLine() + ": Unmatched assign type:" + getType(leftInfo.type) + " and " + getType(rightInfo.type) + ".");
         }
 
         return tmp;
@@ -394,7 +434,7 @@ public class BaseVisitor extends SysYParserBaseVisitor<T>{
         T expInfo = visit(ctx.exp());
         if (!(expInfo.type instanceof IntType)) {
             Token startToken = ctx.getStart();
-            errorList.add("Error type 6 at Line " + startToken.getLine() + ": Unmatched unaryOp type: expected Int, but get " + getType(expInfo.type) + ".");
+            errorList.add("Error type 6 at Line " + startToken.getLine() + ": Unmatched unaryOp type: expected Int, but found " + getType(expInfo.type) + ".");
         }
 
         return tmp;
@@ -407,11 +447,11 @@ public class BaseVisitor extends SysYParserBaseVisitor<T>{
         T rightInfo = visit(ctx.exp(2));
         if (!(leftInfo.type instanceof IntType)) {
             Token startToken = ctx.getStart();
-            errorList.add("Error type 6 at Line " + startToken.getLine() + ": Unmatched mul/div/mod type: expected Int, but get " + getType(leftInfo.type) + ".");
+            errorList.add("Error type 6 at Line " + startToken.getLine() + ": Unmatched mul/div/mod type: expected Int, but found " + getType(leftInfo.type) + ".");
         }
         if (!(rightInfo.type instanceof IntType)) {
             Token startToken = ctx.getStart();
-            errorList.add("Error type 6 at Line " + startToken.getLine() + ": Unmatched mul/div/mod type: expected Int, but get " + getType(rightInfo.type) + ".");
+            errorList.add("Error type 6 at Line " + startToken.getLine() + ": Unmatched mul/div/mod type: expected Int, but found " + getType(rightInfo.type) + ".");
         }
 
         return tmp;
@@ -424,11 +464,11 @@ public class BaseVisitor extends SysYParserBaseVisitor<T>{
         T rightInfo = visit(ctx.exp(2));
         if (!(leftInfo.type instanceof IntType)) {
             Token startToken = ctx.getStart();
-            errorList.add("Error type 6 at Line " + startToken.getLine() + ": Unmatched plus/minus type: expected Int, but get " + getType(leftInfo.type) + ".");
+            errorList.add("Error type 6 at Line " + startToken.getLine() + ": Unmatched plus/minus type: expected Int, but found " + getType(leftInfo.type) + ".");
         }
         if (!(rightInfo.type instanceof IntType)) {
             Token startToken = ctx.getStart();
-            errorList.add("Error type 6 at Line " + startToken.getLine() + ": Unmatched plus/minus type: expected Int, but get " + getType(rightInfo.type) + ".");
+            errorList.add("Error type 6 at Line " + startToken.getLine() + ": Unmatched plus/minus type: expected Int, but found " + getType(rightInfo.type) + ".");
         }
 
         return tmp;
@@ -441,11 +481,11 @@ public class BaseVisitor extends SysYParserBaseVisitor<T>{
         T rightInfo = visit(ctx.exp(2));
         if (!(leftInfo.type instanceof IntType)) {
             Token startToken = ctx.getStart();
-            errorList.add("Error type 6 at Line " + startToken.getLine() + ": Unmatched and/or type: expected Int, but get " + getType(leftInfo.type) + ".");
+            errorList.add("Error type 6 at Line " + startToken.getLine() + ": Unmatched and/or type: expected Int, but found " + getType(leftInfo.type) + ".");
         }
         if (!(rightInfo.type instanceof IntType)) {
             Token startToken = ctx.getStart();
-            errorList.add("Error type 6 at Line " + startToken.getLine() + ": Unmatched and/or type: expected Int, but get " + getType(rightInfo.type) + ".");
+            errorList.add("Error type 6 at Line " + startToken.getLine() + ": Unmatched and/or type: expected Int, but found " + getType(rightInfo.type) + ".");
         }
 
         return tmp;
@@ -485,7 +525,7 @@ public class BaseVisitor extends SysYParserBaseVisitor<T>{
             // Error type 3: Redefined variable.
             if (currentScope.countCurrentScope(ctx.IDENT(i).getText()) != null) {
                 Token startToken = ctx.getStart();
-                errorList.add("Error type 3 at Line " + startToken.getLine() + ": Redefined variable:" + ctx.IDENT().getText() + ".");
+                errorList.add("Error type 3 at Line " + startToken.getLine() + ": Redefined variable:" + ctx.IDENT(i).getText() + ".");
             }
 
             currentScope.define(ctx.IDENT(i).getText(), new IntType());
@@ -531,6 +571,7 @@ public class BaseVisitor extends SysYParserBaseVisitor<T>{
 
 
         // New Scope
+        // functionList.add(new IntType());
 
         T tmp = visitChildren(ctx); 
 
@@ -538,20 +579,23 @@ public class BaseVisitor extends SysYParserBaseVisitor<T>{
         function.retType = new IntType();
         int paraCnt = ctx.parameters().parameter().size();
         for (int i = 0; i < paraCnt; i++) {
-            SysYParser.ParameterContext para = ctx.parameters().parameter(i);
+            SysYParser.ParametersContext paras = ctx.parameters();
             
-            if (currentScope.countCurrentScope(para.IDENT().getText()) != null) {
+            Type paraType;
+            String varName;
+            if (paras.parameter(i) instanceof SysYParser.ParameterArrayContext) {
+                paraType = new ArrayType();
+                varName = ((SysYParser.ParameterArrayContext)paras.parameter(i)).IDENT().getText();
+            } else {
+                paraType = new IntType();
+                varName = ((SysYParser.ParameterIntContext)paras.parameter(i)).IDENT().getText();
+            }
+            
+            if (currentScope.countCurrentScope(varName) != null) {
                 continue;
             }
 
-            Type paraType;
-            if (para instanceof SysYParser.ParameterArrayContext) {
-                paraType = new ArrayType();
-            } else {
-                paraType = new IntType();
-            }
-
-            currentScope.define(para.IDENT().getText(), paraType);
+            currentScope.define(varName, paraType);
         }
 
         currentScope.define(ctx.IDENT().getText(), function);
@@ -574,6 +618,13 @@ public class BaseVisitor extends SysYParserBaseVisitor<T>{
         int bracktCnt = ctx.L_BRACKT().size();
         Type currentType = varType;
         for (int i = 0; i < bracktCnt; i++) {
+            // Error Type 9: Subscripted value is not an array.
+            if (!(currentType instanceof ArrayType)) {
+                Token startToken = ctx.getStart();
+                errorList.add("Error type 1 at Line " + startToken.getLine() + ": Subscripted value is not an array.");
+                break;
+            }
+
             currentType = ((ArrayType)currentType).elementType;
         }
 

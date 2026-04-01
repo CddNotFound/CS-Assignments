@@ -18,6 +18,7 @@ public class Scope {
     public Scope getEnclosScope() {
         return parent;
     }
+    
     public void define(String name, Type info) {
         mp.put(name, info);
     }
