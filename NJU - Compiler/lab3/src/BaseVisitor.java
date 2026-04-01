@@ -9,10 +9,11 @@ import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.Vocabulary;
 import org.antlr.v4.runtime.misc.*;
 import java.util.HashMap;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 
-public class BaseVisitor<T> extends SysYParserBaseVisitor<T>{
-    HashMap<Integer, TokenStyle> mp;
+public class BaseVisitor extends SysYParserBaseVisitor<T>{
+    // HashMap<Integer, TokenStyle> mp;
     // int parenCnt, bracktCnt, braceCnt;
     int braceCnt;
     int level;
@@ -22,6 +23,10 @@ public class BaseVisitor<T> extends SysYParserBaseVisitor<T>{
     public static final int[] colorList = new int[6];
     int a, b;
 
+    Scope currentScope;
+
+    ArrayList<String> errorList;
+
     static {
         for (int i = 0; i < 6; i++) {
             colorList[i] = 91 + i;
@@ -29,15 +34,16 @@ public class BaseVisitor<T> extends SysYParserBaseVisitor<T>{
     }
 
     public BaseVisitor() {
-        mp = new HashMap<Integer, TokenStyle>();
-        level = 0;
-        braceCnt = 0;
-        color = 0;
-        underline = false;
-        unaryOp = false;
-        blockInBlock = false;
-        declare = false;
-        firstRow = true;
+        // mp = new HashMap<Integer, TokenStyle>();
+        this.errorList = new ArrayList<String>();
+        this.level = 0;
+        this.braceCnt = 0;
+        this.color = 0;
+        this.underline = false;
+        this.unaryOp = false;
+        this.blockInBlock = false;
+        this.declare = false;
+        this.firstRow = true;
         a = 0;
         b = 0;
     }
@@ -216,6 +222,14 @@ public class BaseVisitor<T> extends SysYParserBaseVisitor<T>{
     @Override public T visitFunctionCall(SysYParser.FunctionCallContext ctx) {
         int sColor = color;
         boolean sUnderline = underline;
+        String funcName = ctx.IDENT().getText();
+        Type funcType = currentScope.resolve(funcName);
+
+        // Error type 2: Undefined function.
+        if (funcType == null) {
+            Token startToken = ctx.getStart();
+            errorList.add("Error type 2 at Line " + startToken.getLine() + ": Undefined function:" + ctx.IDENT().getText() + ".");
+        }
 
         color = 93;
         underline = false;
@@ -224,6 +238,10 @@ public class BaseVisitor<T> extends SysYParserBaseVisitor<T>{
 
         color = sColor;
         underline = sUnderline;
+
+        // return type
+        FunctionType function = (FunctionType) funcType;
+        tmp.type = function.retType;
 
         return tmp;
     }
@@ -342,16 +360,24 @@ public class BaseVisitor<T> extends SysYParserBaseVisitor<T>{
         stmtTab(ctx.getParent());
         int sColor = color;
         boolean sUnderline = underline;
-
+        
         color = 97;
         underline = false;
-
+        
         T tmp = visitChildren(ctx);
-
+        
         color = sColor;
         underline = sUnderline;
         
         exitStmt(ctx.getParent());
+        // Error Type 5: Unmatched assign type.
+        T leftInfo = visit(ctx.lVal());
+        T rightInfo = visit(ctx.exp());
+        if (leftInfo.type != rightInfo.type) {
+            Token startToken = ctx.getStart();
+            errorList.add("Error type 5 at Line " + startToken.getLine() + ": Unmatched assign type:" + getType(leftInfo.type) + " and " + getType(rightInfo.type) + ".");)
+        }
+
         return tmp;
     }
 
@@ -363,6 +389,64 @@ public class BaseVisitor<T> extends SysYParserBaseVisitor<T>{
         T tmp = visitChildren(ctx);
 
         unaryOp = sUnaryOp;
+
+        // Error Type 6: Unmatched unaryOp type.
+        T expInfo = visit(ctx.exp());
+        if (!(expInfo.type instanceof IntType)) {
+            Token startToken = ctx.getStart();
+            errorList.add("Error type 6 at Line " + startToken.getLine() + ": Unmatched unaryOp type: expected Int, but get " + getType(expInfo.type) + ".");
+        }
+
+        return tmp;
+    }
+    @Override public T visitMulOp(SysYParser.MulOpContext ctx) {
+        T tmp = visitChildren(ctx);
+
+        // Error Type 6: Unmatched mul/div/mod type.
+        T leftInfo = visit(ctx.exp(1));
+        T rightInfo = visit(ctx.exp(2));
+        if (!(leftInfo.type instanceof IntType)) {
+            Token startToken = ctx.getStart();
+            errorList.add("Error type 6 at Line " + startToken.getLine() + ": Unmatched mul/div/mod type: expected Int, but get " + getType(leftInfo.type) + ".");
+        }
+        if (!(rightInfo.type instanceof IntType)) {
+            Token startToken = ctx.getStart();
+            errorList.add("Error type 6 at Line " + startToken.getLine() + ": Unmatched mul/div/mod type: expected Int, but get " + getType(rightInfo.type) + ".");
+        }
+
+        return tmp;
+    }
+    @Override public T visitPlusOp(SysYParser.PlusOpContext ctx) {
+        T tmp = visitChildren(ctx);
+
+        // Error Type 6: Unmatched plus/minus type.
+        T leftInfo = visit(ctx.exp(1));
+        T rightInfo = visit(ctx.exp(2));
+        if (!(leftInfo.type instanceof IntType)) {
+            Token startToken = ctx.getStart();
+            errorList.add("Error type 6 at Line " + startToken.getLine() + ": Unmatched plus/minus type: expected Int, but get " + getType(leftInfo.type) + ".");
+        }
+        if (!(rightInfo.type instanceof IntType)) {
+            Token startToken = ctx.getStart();
+            errorList.add("Error type 6 at Line " + startToken.getLine() + ": Unmatched plus/minus type: expected Int, but get " + getType(rightInfo.type) + ".");
+        }
+
+        return tmp;
+    }
+    @Override public T visitAndOp(SysYParser.AndOpContext ctx) {
+        T tmp = visitChildren(ctx);
+
+        // Error Type 6: Unmatched and/or type.
+        T leftInfo = visit(ctx.exp(1));
+        T rightInfo = visit(ctx.exp(2));
+        if (!(leftInfo.type instanceof IntType)) {
+            Token startToken = ctx.getStart();
+            errorList.add("Error type 6 at Line " + startToken.getLine() + ": Unmatched and/or type: expected Int, but get " + getType(leftInfo.type) + ".");
+        }
+        if (!(rightInfo.type instanceof IntType)) {
+            Token startToken = ctx.getStart();
+            errorList.add("Error type 6 at Line " + startToken.getLine() + ": Unmatched and/or type: expected Int, but get " + getType(rightInfo.type) + ".");
+        }
 
         return tmp;
     }
@@ -391,4 +475,142 @@ public class BaseVisitor<T> extends SysYParserBaseVisitor<T>{
     @Override public T visitAllType(SysYParser.AllTypeContext ctx) { 
         return visitChildren(ctx); 
     }
+
+    @Override public T visitIntDeclare(SysYParser.IntDeclareContext ctx) {
+        
+        T tmp = visitChildren(ctx);
+        
+        int intCnt = ctx.IDENT().size();
+        for (int i = 0; i < intCnt; i++) {
+            // Error type 3: Redefined variable.
+            if (currentScope.countCurrentScope(ctx.IDENT(i).getText()) != null) {
+                Token startToken = ctx.getStart();
+                errorList.add("Error type 3 at Line " + startToken.getLine() + ": Redefined variable:" + ctx.IDENT().getText() + ".");
+            }
+
+            currentScope.define(ctx.IDENT(i).getText(), new IntType());
+        }
+
+        return tmp;
+    }
+
+    @Override public T visitArrayDeclare(SysYParser.ArrayDeclareContext ctx) {
+        // Error type 3: Redefined variable.
+        if (currentScope.countCurrentScope(ctx.IDENT().getText()) != null) {
+            Token startToken = ctx.getStart();
+            errorList.add("Error type 3 at Line " + startToken.getLine() + ": Redefined variable:" + ctx.IDENT().getText() + ".");
+        }
+
+        T tmp = visitChildren(ctx);
+
+        // int arraySize = 1;
+        int numCnt = ctx.number().size();
+        Type currentType = new IntType();
+        for (int i = numCnt - 1; i >= 0; i--) {
+            String number = ctx.number(i).getText();
+            int oneSize = 1;
+            for (int j = 0; j < number.length(); j++) {
+                oneSize = oneSize * 10 + number.charAt(i) - 48;
+            }
+            currentType = new ArrayType(currentType, oneSize);
+        }
+
+        currentScope.define(ctx.IDENT().getText(), currentType);
+
+        return tmp;
+    }
+
+    @Override public T visitFuncDecl(SysYParser.FuncDeclContext ctx) {
+        // Error type 4: Redefined function.
+        String funcName = ctx.IDENT().getText();
+        if (currentScope.resolve(funcName) != null) {
+            Token startToken = ctx.getStart();
+            errorList.add("Error type 4 at Line " + startToken.getLine() + ": Redefined function:" + funcName + ")");
+            return null;
+        }
+
+
+        // New Scope
+
+        T tmp = visitChildren(ctx); 
+
+        FunctionType function = new FunctionType();
+        function.retType = new IntType();
+        int paraCnt = ctx.parameters().parameter().size();
+        for (int i = 0; i < paraCnt; i++) {
+            SysYParser.ParameterContext para = ctx.parameters().parameter(i);
+            
+            if (currentScope.countCurrentScope(para.IDENT().getText()) != null) {
+                continue;
+            }
+
+            Type paraType;
+            if (para instanceof SysYParser.ParameterArrayContext) {
+                paraType = new ArrayType();
+            } else {
+                paraType = new IntType();
+            }
+
+            currentScope.define(para.IDENT().getText(), paraType);
+        }
+
+        currentScope.define(ctx.IDENT().getText(), function);
+
+        return tmp;
+    }
+
+
+    // Error type 1: Undefined variable.
+    @Override public T visitLVal(SysYParser.LValContext ctx) {
+        T tmp = visitChildren(ctx);
+        String varName = ctx.IDENT().getText();
+        Type varType = currentScope.resolve(varName);
+
+        if (varType == null) {
+            Token startToken = ctx.getStart();
+            errorList.add("Error type 1 at Line " + startToken.getLine() + ": Undefined variable:" + ctx.IDENT().getText() + ".");
+        }
+
+        int bracktCnt = ctx.L_BRACKT().size();
+        Type currentType = varType;
+        for (int i = 0; i < bracktCnt; i++) {
+            currentType = ((ArrayType)currentType).elementType;
+        }
+
+        tmp.type = currentType;
+
+        return tmp;
+    }
+
+
+
+    // get Expr type.
+    @Override public T visitPAREN(SysYParser.PARENContext ctx) {
+        return visitChildren(ctx);
+    }
+    @Override public T visitVarCall(SysYParser.VarCallContext ctx) {
+        return visitChildren(ctx);
+    }
+    @Override public T visitConstInt(SysYParser.ConstIntContext ctx) {
+        T tmp = visitChildren(ctx);
+        tmp.type = new IntType();
+        return tmp;
+    }
+
+    public String getType(Type type) {
+        if (type instanceof IntType) {
+            return "Int";
+        } else if (type instanceof ArrayType) {
+            String result = "Int";
+            Type currentType = type;
+            while (currentType instanceof ArrayType) {
+                result += "[]";
+                currentType = ((ArrayType)currentType).elementType;
+            } 
+            return result;
+        } else {
+            return "Function";
+        }
+    }
+    
 }

@@ -87,13 +87,16 @@ constExp
 basicType : CONST? INT;
 allType : CONST? INT | VOID;
 
-funcDecl : allType IDENT L_PAREN parameters? R_PAREN block ;
+funcDecl : (INT | VOID) IDENT L_PAREN parameters? R_PAREN block ;
 
-parameter : INT IDENT (L_BRACKT R_BRACKT)?;
+parameter : INT IDENT (L_BRACKT R_BRACKT)   # ParameterArray
+          | INT IDENT                       # ParameterInt
+          ;
+
 parameters : parameter (COMMA parameter)* ; 
 
-varDecl : basicType IDENT (ASSIGN exp)? (COMMA IDENT (ASSIGN exp)?)* SEMICOLON
-        | basicType IDENT (L_BRACKT number R_BRACKT)+ (ASSIGN arrayAssign)? SEMICOLON
+varDecl : INT IDENT (ASSIGN exp)? (COMMA IDENT (ASSIGN exp)?)* SEMICOLON          # IntDeclare
+        | INT IDENT (L_BRACKT number R_BRACKT)+ (ASSIGN arrayAssign)? SEMICOLON   # ArrayDeclare
         ;
 
 arrayAssign : arrayNumber
