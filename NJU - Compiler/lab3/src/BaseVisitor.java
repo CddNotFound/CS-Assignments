@@ -57,11 +57,11 @@ public class BaseVisitor extends SysYParserBaseVisitor<T>{
 
     private void printTab() {
         for (int i = 1; i <= level; i++) {
-            System.out.print("    ");
+            // System.out.print("    ");
         }
     }
     private void println() {
-        System.out.println();
+        // System.out.println();
     }
 
     private void printToken(String text, int color, boolean underline) {
@@ -71,18 +71,18 @@ public class BaseVisitor extends SysYParserBaseVisitor<T>{
         }
 
         if (color == 0) {
-            System.out.print(text);
+            // System.out.print(text);
         } else if (underline && !text.trim().isEmpty()){
-                System.out.print("\033[" + color + ";4m" + text + "\033[0m");
+                // System.out.print("\033[" + color + ";4m" + text + "\033[0m");
         } else {
-            System.out.print("\033[" + color + "m" + text + "\033[0m");
+            // System.out.print("\033[" + color + "m" + text + "\033[0m");
         }
     }
 
     private void printPreviousSpace(int type) {
         if (((type >= 12 && type <= 21) || (type >= 23 && type <= 26))
          || ((type == 10 || type == 11) && !unaryOp)) {
-            System.out.print(" ");
+            // System.out.print(" ");
         }
     }
 
@@ -91,7 +91,7 @@ public class BaseVisitor extends SysYParserBaseVisitor<T>{
          || (type >= 12 && type <= 21 || (type >= 23 && type <= 26))
          || ((type == 10 || type == 11) && !unaryOp)
          || type == 27) {
-            System.out.print(" ");
+            // System.out.print(" ");
         }
     }
 
@@ -148,10 +148,10 @@ public class BaseVisitor extends SysYParserBaseVisitor<T>{
                 if (parent instanceof SysYParser.IfElseContext) {
                     SysYParser.IfElseContext ftr = (SysYParser.IfElseContext) parent;
                     if (!(ftr.stat().size() >= 2 && ftr.stat(1) == node.getParent().getParent())) {
-                        System.out.print(" ");
+                        // System.out.print(" ");
                     }
                 } else {
-                    System.out.print(" ");
+                    // System.out.print(" ");
                 }
                 printToken(text, color, underline);
                 level += 1;
@@ -387,12 +387,6 @@ public class BaseVisitor extends SysYParserBaseVisitor<T>{
 
         // Error type 7: Unmatched return type.
         Type retType = nodeTypes.get(ctx.exp());
-        // System.out.println("returning a/an " + getType(retType));
-        System.out.println("whatisit: " + getType(retType));
-        if (retType instanceof FunctionType) {
-            System.out.println("retType = : " + getType(((FunctionType)retType).retType));
-        }
-
         if (!(retType instanceof IntType || (retType instanceof FunctionType && ((FunctionType)retType).retType instanceof IntType))) {
             Token startToken = ctx.getStart();
             addErrorMessage(startToken.getLine(), 7, "Error type 7 at Line " + startToken.getLine() + ": Unmatched return type: expected Int, but found " + getType(retType) + ".");
@@ -614,9 +608,9 @@ public class BaseVisitor extends SysYParserBaseVisitor<T>{
         Type currentType = new IntType();
         for (int i = numCnt - 1; i >= 0; i--) {
             String number = ctx.number(i).getText();
-            int oneSize = 1;
+            int oneSize = 0;
             for (int j = 0; j < number.length(); j++) {
-                oneSize = oneSize * 10 + number.charAt(i) - 48;
+                oneSize = oneSize * 10 + number.charAt(j) - 48;
             }
             currentType = new ArrayType(currentType, oneSize);
         }
@@ -632,7 +626,7 @@ public class BaseVisitor extends SysYParserBaseVisitor<T>{
         String funcName = ctx.IDENT().getText();
         if (currentScope.resolve(funcName) != null) {
             Token startToken = ctx.getStart();
-            addErrorMessage(startToken.getLine(), 4, "Error type 4 at Line " + startToken.getLine() + ": Redefined function:" + funcName + ")");
+            addErrorMessage(startToken.getLine(), 4, "Error type 4 at Line " + startToken.getLine() + ": Redefined function:" + funcName + ".");
             return new T();
         }
 

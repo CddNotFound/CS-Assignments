@@ -33,9 +33,9 @@ test: compile
 	rm -f ./tests/nohup*.out
 	nohup java -classpath ./classes:$(ANTLRPATH) Main ./tests/test1.sysy > ./tests/nohup1.out &
 	nohup java -classpath ./classes:$(ANTLRPATH) Main ./tests/test2.sysy > ./tests/nohup2.out &
-# 	nohup java -classpath ./classes:$(ANTLRPATH) Main ./tests/test3.sysy > ./tests/nohup3.out &
-# 	nohup java -classpath ./classes:$(ANTLRPATH) Main ./tests/test4.sysy > ./tests/nohup4.out &
-# 	nohup java -classpath ./classes:$(ANTLRPATH) Main ./tests/test5.sysy > ./tests/nohup5.out &
+	nohup java -classpath ./classes:$(ANTLRPATH) Main ./tests/test3.sysy > ./tests/nohup3.out &
+	nohup java -classpath ./classes:$(ANTLRPATH) Main ./tests/test4.sysy > ./tests/nohup4.out &
+	nohup java -classpath ./classes:$(ANTLRPATH) Main ./tests/test5.sysy > ./tests/nohup5.out &
 
 
 clean:

@@ -1,0 +1,4 @@
+Error type 3 at Line 3: Redefined variable:a.
+Error type 3 at Line 4: Redefined variable:b.
+Error type 1 at Line 5: Undefined variable:c.
+Error type 2 at Line 6: Undefined function:func.
