@@ -1,18 +1,24 @@
-[96mint[0m [93mFibonacci[0m[91m([0m[96mint[0m n[91m)[0m [91m{[0m
-    [96;4mint[0m [95;4mt0[0m [91;4m=[0m [35;4m0[0m[91;4m,[0m [95;4mt1[0m [91;4m=[0m [35;4m1[0m[91;4m;[0m
-    [96;4mint[0m [95;4mi[0m [91;4m=[0m [35;4m1[0m[91;4m;[0m
-    [96mwhile[0m [92m([0m[97mi[0m [91m<[0m [97mn[0m[92m)[0m [92m{[0m
-        [96;4mint[0m [95;4mt2[0m [91;4m=[0m [95;4mt0[0m [91;4m+[0m [95;4mt1[0m[91;4m;[0m
-        [97mt0[0m [91m=[0m [97mt1[0m[91m;[0m
-        [97mt1[0m [91m=[0m [97mt2[0m[91m;[0m
-        [97mi[0m [91m=[0m [97mi[0m [91m+[0m [35m1[0m[91m;[0m
-    [92m}[0m
-    [96mreturn[0m [97mt1[0m[91m;[0m
-[91m}[0m
+Search 'a' in GlobalScope#1
+[96mint[0m [93ma[0m[91m([0m[91m)[0m [91m{[0m
+    [96mreturn[0m [35m10[0m[91m;[0mwhatisit: Int
 
+[91m}[0mdefine in GlobalScope#1: a
+define in GlobalScope#1: a
+
+
+Search 'main' in GlobalScope#1
 [96mint[0m [93mmain[0m[91m([0m[91m)[0m [91m{[0m
-    [96;4mint[0m [95;4ma[0m [91;4m=[0m [93mFibonacci[0m[92m([0m[35m3[0m[92m)[0m[91;4m;[0m
-    [96;4mint[0m [95;4mb[0m [91;4m=[0m [35;4m0[0m[91;4m;[0m
-    [96mreturn[0m [91m-[0m[97ma[0m[91m;[0m
-    [96mreturn[0m [91m+[0m[35m0[0m[91m;[0m
-[91m}[0m
+    [96;4mint[0m [95;4ma[0m [91;4m=[0m [35;4m3[0m[91;4m;[0mdefine in block#4: a
+
+    [96;4mint[0m [95;4mb[0m [91;4m=[0m [35;4m4[0m[91;4m;[0mdefine in block#4: b
+
+    [97ma[0mSearch 'a' in block#4
+found!class IntType
+ [91m=[0m [35m5[0m[91m;[0m
+    [96mreturn[0m [97ma[0mSearch 'a' in block#4
+found!class IntType
+[91m;[0mwhatisit: Int
+
+[91m}[0mdefine in GlobalScope#1: main
+define in GlobalScope#1: main
+No semantic errors in the program!
