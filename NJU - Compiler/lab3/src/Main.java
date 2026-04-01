@@ -49,21 +49,15 @@ public class Main
             myErrorListener.printLexerErrorInformation();
         } else {
             BaseVisitor visitor = new BaseVisitor();
-            visitor.visit(tree);        
+            visitor.visit(tree);
 
-            // for (int i = visitor.a; i < visitor.b; i++) {
-            //     Token token = tokens.get(i);
-            //     int idx = token.getTokenIndex();
-            //     String text = token.getText();
-            //     TokenStyle style = (TokenStyle) visitor.mp.getOrDefault(idx, null);
-            //     if (style == null) {
-            //         System.out.print(text);
-            //     } else if (style.underline && !text.trim().isEmpty()){
-            //         System.out.print("\033[" + style.color + ";4m" + text + "\033[0m");
-            //     } else {
-            //         System.out.print("\033[" + style.color + "m" + text + "\033[0m");
-            //     }
-            // }
+            if (!visitor.errorList.isEmpty()) {
+                for (String errMessage : visitor.errorList) {
+                    System.out.println(errMessage);
+                }
+            } else {
+                System.err.println("No semantic errors in the program!");
+            }
         }
         
     }

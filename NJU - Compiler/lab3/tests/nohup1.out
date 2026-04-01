@@ -1,2 +1,73 @@
-Error type B at Line 2: missing INTEGER_CONST at ']'.
-Error type B at Line 3: mismatched input ']' expecting {'+', '-', '*', '/', '%', '&', '|', ';', '['}.
+Search 'a' in GlobalScope#1
+[96mint[0m [93ma[0m[91m([0m[91m)[0m [91m{[0m
+    [96mreturn[0m [35m1[0m[91m;[0mwhatisit: Int
+
+[91m}[0mdefine in GlobalScope#1: a
+define in GlobalScope#1: a
+
+
+Search 'a' in GlobalScope#1
+found!class FunctionType
+
+
+Search 'main' in GlobalScope#1
+[96mint[0m [93mmain[0m[91m([0m[91m)[0m [91m{[0m
+    [97mb[0mSearch 'b' in block#4
+Search 'b' in GlobalScope#1
+ [91m=[0m Search 'c' in block#4
+Search 'c' in GlobalScope#1
+[93mc[0m[92m([0m[92m)[0m[91m;[0m
+    [96;4mint[0m [95;4mtest1[0m[91;4m;[0mdefine in block#4: test1
+
+    [96;4mint[0m [95;4mtest1[0m[91;4m;[0mdefine in block#4: test1
+
+    [96;4mint[0m [95;4marray[0m[92;4m[[0m[35;4m2[0m[92;4m][0m [91;4m=[0m [92;4m{[0m[35;4m0[0m[91;4m,[0m [35;4m0[0m[92;4m}[0m[91;4m;[0mdefine in block#4: array
+
+    [97mtest1[0mSearch 'test1' in block#4
+found!class IntType
+ [91m=[0m [97marray[0mSearch 'array' in block#4
+found!class ArrayType
+[91m;[0m
+    [97mtest1[0mSearch 'test1' in block#4
+found!class IntType
+ [91m=[0m [97ma[0mSearch 'a' in block#4
+Search 'a' in GlobalScope#1
+found!class FunctionType
+ [91m+[0m [97marray[0mSearch 'array' in block#4
+found!class ArrayType
+[91m;[0m
+    [97mtest1[0mSearch 'test1' in block#4
+found!class IntType
+ [91m=[0m Search 'a' in block#4
+Search 'a' in GlobalScope#1
+found!class FunctionType
+[93ma[0m[92m([0m[35m1[0m[92m)[0m[91m;[0m
+    [97mtest1[0mSearch 'test1' in block#4
+found!class IntType
+ [91m=[0m [97mtest1[0m[92m[[0m[35m0[0m[92m][0mSearch 'test1' in block#4
+found!class IntType
+[91m;[0m
+    Search 'test1' in block#4
+found!class IntType
+[93mtest1[0m[92m([0m[92m)[0m[91m;[0m
+    [97ma[0mSearch 'a' in block#4
+Search 'a' in GlobalScope#1
+found!class FunctionType
+ [91m=[0m [35m1[0m[91m;[0m
+    [96mreturn[0m [97ma[0mSearch 'a' in block#4
+Search 'a' in GlobalScope#1
+found!class FunctionType
+[91m;[0mwhatisit: Function
+retType = : Int
+
+[91m}[0mdefine in GlobalScope#1: main
+define in GlobalScope#1: main
+Error type 4 at Line 5: Redefined function:a)
+Error type 1 at Line 10: Undefined variable:b.
+Error type 3 at Line 12: Redefined variable:test1.
+Error type 5 at Line 14: Unmatched assign type:Int and Int[].
+Error type 6 at Line 15: Unmatched operator type.
+Error type 8 at Line 16: Incompatible function arguments.
+Error type 9 at Line 17: Subscripted value is not an array.
+Error type 10 at Line 18: Called object type Int is not a function.
+Error type 11 at Line 19: Cannot assign a value to a function a.
