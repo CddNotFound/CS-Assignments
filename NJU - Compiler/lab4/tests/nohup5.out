@@ -1,0 +1,4 @@
+Error type 7 at Line 3: Unmatched return type: expected Int, but found Int[].
+Error type 4 at Line 6: Redefined function:calc.
+Error type 8 at Line 11: Incompatible function arguments.
+Error type 11 at Line 12: Cannot assign a value to a function calc.
