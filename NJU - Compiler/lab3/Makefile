@@ -1,9 +1,14 @@
 include Makefile.git
 
-export CLASSPATH=/usr/local/lib/antlr-*-complete.jar
+LLVM_JAR = $(shell echo 'find /usr/local/lib -name "llvm-*.jar' | sed "s/\s\+/:/g")
+JAVACPP_JAR = $(shell echo 'find /usr/local/lib -name "javacpp-*.jar"' | sed "s/\s\+/:/g")
+ANTLR_PATH = $(shell find /usr/local/lib -name "antlr-*-complete.jar")
+export CLASSPATH = $(ANTLR_PATH):$(LLVM_JAR):$(JAVACPP_JAR)
+# export CLASSPATH=/usr/local/lib/antlr-*-complete.jar
 
 DOMAINNAME = oj.compilers.cpl.icu
-ANTLR = java -jar /usr/local/lib/antlr-*-complete.jar -listener -visitor -long-messages
+ANTLR = java -jar $(ANTLR_PATH) -listener -visitor -long-messages
+# ANTLR = java -jar /usr/local/lib/antlr-*-complete.jar -listener -visitor -long-messages
 JAVAC = javac -g
 JAVA = java
 
@@ -12,16 +17,19 @@ PFILE = $(shell find . -name "SysYParser.g4")
 LFILE = $(shell find . -name "SysYLexer.g4")
 # JAVAFILE = $(shell find . -name "*.java")
 JAVAFILE = src/*.java
-ANTLRPATH = $(shell find /usr/local/lib -name "antlr-*-complete.jar")
+# ANTLRPATH = $(shell find /usr/local/lib -name "antlr-*-complete.jar")
+
 
 compile: antlr
 # 	$(call git_commit,"make")
 	rm -rf src/.antlr
 	mkdir -p classes
-	$(JAVAC) -classpath $(ANTLRPATH) $(JAVAFILE) -d classes
+	$(JAVAC) -classpath $(CLASSPATH) $(JAVAFILE) -d classes
+# 	$(JAVAC) -classpath $(ANTLRPATH) $(JAVAFILE) -d classes
 
 run: compile
-	java -classpath ./classes:$(ANTLRPATH) Main $(FILEPATH)
+	java -classpath ./classes:$(CLASSPATH) Main $(FILEPATH)
+# 	java -classpath ./classes:$(ANTLRPATH) Main $(FILEPATH)
 
 
 antlr: $(LFILE) $(PFILE) 
@@ -31,12 +39,8 @@ antlr: $(LFILE) $(PFILE)
 test: compile
 # 	$(call git_commit, "test")
 	rm -f ./tests/nohup*.out
-	nohup java -classpath ./classes:$(ANTLRPATH) Main ./tests/test1.sysy > ./tests/nohup1.out &
-	nohup java -classpath ./classes:$(ANTLRPATH) Main ./tests/test2.sysy > ./tests/nohup2.out &
-	nohup java -classpath ./classes:$(ANTLRPATH) Main ./tests/test3.sysy > ./tests/nohup3.out &
-	nohup java -classpath ./classes:$(ANTLRPATH) Main ./tests/test4.sysy > ./tests/nohup4.out &
-	nohup java -classpath ./classes:$(ANTLRPATH) Main ./tests/test5.sysy > ./tests/nohup5.out &
-
+	if [ -e nohup.out ]; then rm nohup.out; fi
+	nohup java -classpath ./classes:$(CLASSPATH) Main ./tests/test1.sysy ./tests/test1.ll &
 
 clean:
 	rm -f src/*.tokens
