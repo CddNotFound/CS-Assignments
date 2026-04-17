@@ -22,15 +22,17 @@ public class BaseVisitor extends SysYParserBaseVisitor<LLVMValueRef>{
     Scope currentScope;
 
     // lab 4:
-    int varCnt, blockCnt;
+    int varCnt, blockCnt, conditionVarCnt;
 
     LLVMModuleRef module;
     LLVMBuilderRef builder;
-    LLVMTypeRef i32Type;
+    LLVMTypeRef i32Type, i1Type;
     LLVMValueRef zero, one;
 
+    LLVMValueRef currentFunction;
+
     public BaseVisitor() {
-        varCnt = blockCnt = 0;
+        varCnt = blockCnt = conditionVarCnt = 0;
 
         LLVMInitializeCore(LLVMGetGlobalPassRegistry());
         LLVMLinkInMCJIT();
@@ -41,8 +43,10 @@ public class BaseVisitor extends SysYParserBaseVisitor<LLVMValueRef>{
         module = LLVMModuleCreateWithName("module");
         builder = LLVMCreateBuilder();
         i32Type = LLVMInt32Type();
+        i1Type = LLVMInt1Type();
         zero = LLVMConstInt(i32Type, 0, 0);
         one = LLVMConstInt(i32Type, 1, 0);
+        currentFunction = null;
     }
 
     @Override public LLVMValueRef visitProg(SysYParser.ProgContext ctx) { 
@@ -103,6 +107,7 @@ public class BaseVisitor extends SysYParserBaseVisitor<LLVMValueRef>{
         LLVMTypeRef ft = LLVMFunctionType(returnType, argumentTypes, paraCnt, 0);
         LLVMValueRef function = LLVMAddFunction(module, ctx.funcDecl().IDENT().getText(), ft);
         currentScope.define(ctx.funcDecl().IDENT().getText(), function);
+        currentFunction = function;
         
         // New Scope
         currentScope = new Scope("functionScope", currentScope);
@@ -134,6 +139,7 @@ public class BaseVisitor extends SysYParserBaseVisitor<LLVMValueRef>{
         LLVMValueRef tmp = visitChildren(ctx);
 
         currentScope = currentScope.getEnclosScope();
+        currentFunction = null;
         
         return tmp;
     }
@@ -241,16 +247,129 @@ public class BaseVisitor extends SysYParserBaseVisitor<LLVMValueRef>{
         return tmp;
     }
 
-    @Override public LLVMValueRef visitWhileLoop(SysYParser.WhileLoopContext ctx) {
-        LLVMValueRef tmp = visitChildren(ctx);
+    @Override public LLVMValueRef visitExpToCond(SysYParser.ExpToCondContext ctx) {
+        LLVMValueRef exp = visit(ctx.exp());
+        return exp;
+    }
+    @Override public LLVMValueRef visitLessThan(SysYParser.LessThanContext ctx) {
+        LLVMValueRef left = visit(ctx.cond(0));
+        int opType = 0;
+        if (ctx.LT() != null) {
+            opType = 1;
+        } else if (ctx.GT() != null) {
+            opType = 2;   
+        } else if (ctx.LE() != null) {
+            opType = 3;   
+        } else {
+            opType = 4;
+        }
+        LLVMValueRef right = visit(ctx.cond(1));
 
-        return tmp;
+        LLVMValueRef result;
+        if (opType == 1) {
+            result = LLVMBuildICmp(builder, LLVMIntSLT, left, right, "result");
+        } else if (opType == 2) {
+            result = LLVMBuildICmp(builder, LLVMIntSGT, left, right, "result");
+        } else if (opType == 3) {
+            result = LLVMBuildICmp(builder, LLVMIntSLE, left, right, "result");
+        } else {
+            result = LLVMBuildICmp(builder, LLVMIntSGE, left, right, "result");
+        }
+        result = LLVMBuildZExt(builder, result, i32Type, "result");
+        return result;
+    }
+    @Override public LLVMValueRef visitEqual(SysYParser.EqualContext ctx) {
+        LLVMValueRef left = visit(ctx.cond(0));
+        int opType = 0;
+        if (ctx.EQ() != null) {
+            opType = 1;
+        } else {
+            opType = 2;
+        }
+        LLVMValueRef right = visit(ctx.cond(1));
+
+        LLVMValueRef result;
+        if (opType == 1) {
+            result = LLVMBuildICmp(builder, LLVMIntEQ, left, right, "result");
+        } else {
+            result = LLVMBuildICmp(builder, LLVMIntNE, left, right, "result");
+        }
+        result = LLVMBuildZExt(builder, result, i32Type, "result");
+        return result;
+    }
+    @Override public LLVMValueRef visitLogicalAnd(SysYParser.LogicalAndContext ctx) {
+        LLVMValueRef left = visit(ctx.cond(0));
+        LLVMValueRef right = visit(ctx.cond(1));
+
+        LLVMValueRef result = LLVMBuildAnd(builder, left, right, "result");
+        result = LLVMBuildZExt(builder, result, i32Type, "result");
+        return result;
+    }
+    @Override public LLVMValueRef visitLogicalOr(SysYParser.LogicalOrContext ctx) {
+        LLVMValueRef left = visit(ctx.cond(0));
+        LLVMValueRef right = visit(ctx.cond(1));
+
+        LLVMValueRef result = LLVMBuildOr(builder, left, right, "result");
+        result = LLVMBuildZExt(builder, result, i32Type, "result");
+        return result;
+    }
+
+    @Override public LLVMValueRef visitWhileLoop(SysYParser.WhileLoopContext ctx) {
+        LLVMBasicBlockRef block = LLVMAppendBasicBlock(currentFunction, newBlock("WhileLoop"));
+        LLVMBasicBlockRef conditionCheck = LLVMAppendBasicBlock(currentFunction, newBlock("WhileCondition"));
+        LLVMBasicBlockRef exit = LLVMAppendBasicBlock(currentFunction, newBlock("WhileExit"));
+        LLVMBuildBr(builder, conditionCheck);
+
+        LLVMPositionBuilderAtEnd(builder, conditionCheck);
+        LLVMValueRef cond = visit(ctx.cond());
+        cond = LLVMBuildICmp(builder, LLVMIntNE, cond, LLVMConstInt(i32Type, 0, 0), newConditionVar());
+        LLVMBuildCondBr(builder, cond, block, exit);
+
+        LLVMPositionBuilderAtEnd(builder, block);
+        visit(ctx.stat());
+        LLVMPositionBuilderAtEnd(builder, exit);
+
+        // condition
+        
+        
+        return null;
     }
 
     @Override public LLVMValueRef visitIfElse(SysYParser.IfElseContext ctx) {
-        LLVMValueRef tmp = visitChildren(ctx);
-        
-        return tmp;
+        if (ctx.ELSE() != null) {
+            LLVMBasicBlockRef ifBlock = LLVMAppendBasicBlock(currentFunction, newBlock("IfTrue"));
+            LLVMBasicBlockRef elseBlock = LLVMAppendBasicBlock(currentFunction, newBlock("IfFalse"));
+            LLVMBasicBlockRef ifExit = LLVMAppendBasicBlock(currentFunction, newBlock("IfExit"));
+            
+            LLVMValueRef cond = visit(ctx.cond());
+            cond = LLVMBuildICmp(builder, LLVMIntNE, cond, LLVMConstInt(i32Type, 0, 0), newConditionVar());
+            
+            LLVMBuildCondBr(builder, cond, ifBlock, elseBlock);
+            
+            LLVMPositionBuilderAtEnd(builder, ifBlock);
+            visit(ctx.stat(0));
+            LLVMBuildBr(builder, ifExit);
+            
+            LLVMPositionBuilderAtEnd(builder, elseBlock);
+            visit(ctx.stat(1));
+            LLVMBuildBr(builder, ifExit);
+            LLVMPositionBuilderAtEnd(builder, ifExit);
+        } else {
+            LLVMBasicBlockRef ifBlock = LLVMAppendBasicBlock(currentFunction, newBlock("IfTrue"));
+            LLVMBasicBlockRef ifExit = LLVMAppendBasicBlock(currentFunction, newBlock("IfExit"));
+            
+            LLVMValueRef cond = visit(ctx.cond());
+            cond = LLVMBuildICmp(builder, LLVMIntNE, cond, LLVMConstInt(i32Type, 0, 0), newConditionVar());
+            
+            LLVMBuildCondBr(builder, cond, ifBlock, ifExit);
+
+            LLVMPositionBuilderAtEnd(builder, ifBlock);
+            visit(ctx.stat(0));
+            LLVMBuildBr(builder, ifExit);
+            LLVMPositionBuilderAtEnd(builder, ifExit);
+        }
+
+        return null;
     }
 
 	@Override public LLVMValueRef visitReturn(SysYParser.ReturnContext ctx) {
@@ -493,5 +612,9 @@ public class BaseVisitor extends SysYParserBaseVisitor<LLVMValueRef>{
     public String newBlock(String name) {
         ++blockCnt;
         return name + blockCnt;
+    }
+    public String newConditionVar() {
+        ++conditionVarCnt;
+        return "cond" + conditionVarCnt;
     }
 }

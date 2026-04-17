@@ -5,9 +5,20 @@ source_filename = "module"
 
 define i32 @main() {
 mainEntry:
-  %a = load i32, i32* @a, align 4
-  store i32 2, i32* @a, align 4
-  store i32 20, i32* @a, align 4
+  br label %WhileCondition2
+
+WhileLoop1:                                       ; preds = %WhileCondition2
   %a1 = load i32, i32* @a, align 4
-  ret i32 %a1
+  %result2 = sub i32 %a1, 1
+  store i32 %result2, i32* @a, align 4
+
+WhileCondition2:                                  ; preds = %mainEntry
+  %a = load i32, i32* @a, align 4
+  %result = or i32 1, %a
+  %cond1 = icmp ne i32 %result, 0
+  br i1 %cond1, label %WhileLoop1, label %WhileExit3
+
+WhileExit3:                                       ; preds = %WhileCondition2
+  %a3 = load i32, i32* @a, align 4
+  ret i32 %a3
 }

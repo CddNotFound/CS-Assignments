@@ -1,0 +1,25 @@
+; ModuleID = 'module'
+source_filename = "module"
+
+@a = global i32 10
+
+define i32 @main() {
+mainEntry:
+  %a = load i32, i32* @a, align 4
+  %result = icmp ne i32 %a, 10
+  %result1 = zext i1 %result to i32
+  %cond1 = icmp ne i32 %result1, 0
+  br i1 %cond1, label %IfTrue1, label %IfFalse2
+
+IfTrue1:                                          ; preds = %mainEntry
+  store i32 2, i32* @a, align 4
+  br label %IfExit3
+
+IfFalse2:                                         ; preds = %mainEntry
+  store i32 20, i32* @a, align 4
+  br label %IfExit3
+
+IfExit3:                                          ; preds = %IfFalse2, %IfTrue1
+  %a2 = load i32, i32* @a, align 4
+  ret i32 %a2
+}
