@@ -82,19 +82,22 @@ public class BaseVisitor extends SysYParserBaseVisitor<LLVMValueRef>{
     }
 
     @Override public LLVMValueRef visitFunctionDecl(SysYParser.FunctionDeclContext ctx) {
-        
         LLVMTypeRef returnType = i32Type;
         PointerPointer<Pointer> argumentTypes = new PointerPointer<>(0);
         LLVMTypeRef ft = LLVMFunctionType(returnType, argumentTypes, 0, 0);
         LLVMValueRef function = LLVMAddFunction(module, ctx.funcDecl().IDENT().getText(), ft);
         
+        // New Scope
+        currentScope = new Scope("functionScope", currentScope);
+
         String str = ctx.funcDecl().IDENT().getText() + "Entry";
         LLVMBasicBlockRef block1 = LLVMAppendBasicBlock(function, str);
         LLVMPositionBuilderAtEnd(builder, block1);
-
-
+        // System.out.println("set block to " + str);
 
         LLVMValueRef tmp = visitChildren(ctx);
+
+        currentScope = currentScope.getEnclosScope();
         
         return tmp;
     }
@@ -213,11 +216,14 @@ public class BaseVisitor extends SysYParserBaseVisitor<LLVMValueRef>{
     }
 
     @Override public LLVMValueRef visitVarAssign(SysYParser.VarAssignContext ctx) {
-        visitChildren(ctx);
+        LLVMValueRef lval = visit(ctx.lVal());
+        visit(ctx.ASSIGN());
+        LLVMValueRef exp = visit(ctx.exp());
+        // String name = ctx.lVal().getText();
 
-        LLVMValueRef tmp = new LLVMValueRef();
+        LLVMBuildStore(builder, exp, lval);
 
-        return tmp;
+        return lval;
     }
 
     @Override public LLVMValueRef visitUnaryOp1(SysYParser.UnaryOp1Context ctx) {
@@ -279,6 +285,10 @@ public class BaseVisitor extends SysYParserBaseVisitor<LLVMValueRef>{
         }
         LLVMValueRef right = visit(ctx.exp(1));
 
+        // System.out.println("left = " + left.toString() + " + " + "right = " + right.toString());
+        // System.out.println(ctx.exp(0).getText() + " + " + ctx.exp(1).getText());
+        // // System.out.println("right = " + (right == null));
+
         LLVMValueRef result;
         if (opType == 1) {
             result = LLVMBuildAdd(builder, left, right, "result");
@@ -315,14 +325,36 @@ public class BaseVisitor extends SysYParserBaseVisitor<LLVMValueRef>{
     }
 
     @Override public LLVMValueRef visitIntDeclare(SysYParser.IntDeclareContext ctx) {
-        LLVMValueRef tmp = visitChildren(ctx);
-        
-        int intCnt = ctx.IDENT().size();
-        for (int i = 0; i < intCnt; i++) {
-            currentScope.define(ctx.IDENT(i).getText(), new IntType());
+        if (ctx.CONST() != null) {
+            visit(ctx.CONST());
         }
+        visit(ctx.INT());
+        visit(ctx.IDENT());
+        String name = ctx.IDENT().getText();
 
-        return tmp;
+        LLVMValueRef var;
+        // System.out.println(currentScope.getScopeName() + " define: " + name);
+        if (currentScope.getScopeName().equals("GlobalScope#1")) {
+            // System.out.println("A new GlobalVar.");
+            var = LLVMAddGlobal(module, i32Type, name);
+            if (ctx.ASSIGN() != null) {
+                visit(ctx.ASSIGN());
+                LLVMValueRef value = visit(ctx.exp());
+                LLVMSetInitializer(var, value);
+            } else {
+                LLVMSetInitializer(var, zero);
+            }
+        } else {
+            var = LLVMBuildAlloca(builder, i32Type, name);
+            if (ctx.ASSIGN() != null) {
+                visit(ctx.ASSIGN());
+                LLVMValueRef value = visit(ctx.exp());
+                LLVMBuildStore(builder, value, var);
+            }
+        }
+        currentScope.define(name, var);
+
+        return new LLVMValueRef();
     }
 
     @Override public LLVMValueRef visitArrayDeclare(SysYParser.ArrayDeclareContext ctx) {
@@ -336,41 +368,6 @@ public class BaseVisitor extends SysYParserBaseVisitor<LLVMValueRef>{
     @Override public LLVMValueRef visitFuncDecl(SysYParser.FuncDeclContext ctx) {
         LLVMValueRef tmp = visitChildren(ctx); 
 
-        FunctionType function = new FunctionType();
-        function.retType = new IntType();
-
-        currentScope.define(ctx.IDENT().getText(), function);
-
-        // New Scope
-        currentScope = new Scope("functionScope", currentScope);
-
-        if (ctx.parameters() != null) {
-            int paraCnt = ctx.parameters().parameter().size();
-            for (int i = 0; i < paraCnt; i++) {
-                SysYParser.ParametersContext paras = ctx.parameters();
-                
-                Type paraType;
-                String varName;
-                if (paras.parameter(i) instanceof SysYParser.ParameterArrayContext) {
-                    paraType = new ArrayType();
-                    varName = ((SysYParser.ParameterArrayContext)paras.parameter(i)).IDENT().getText();
-                } else {
-                    paraType = new IntType();
-                    varName = ((SysYParser.ParameterIntContext)paras.parameter(i)).IDENT().getText();
-                }
-                
-                if (currentScope.countCurrentScope(varName) != null) {
-                    continue;
-                }
-
-                currentScope.define(varName, paraType);
-            }
-        }
-
-        // define function in globalScope
-        currentScope = currentScope.getEnclosScope();
-        currentScope.define(ctx.IDENT().getText(), function);
-
         return tmp;
     }
 
@@ -378,28 +375,28 @@ public class BaseVisitor extends SysYParserBaseVisitor<LLVMValueRef>{
     @Override public LLVMValueRef visitLVal(SysYParser.LValContext ctx) {
         visitChildren(ctx);
         String varName = ctx.IDENT().getText();
-        Type varType = currentScope.resolve(varName);
+        LLVMValueRef pointer = currentScope.resolve(varName);
+        // LLVMValueRef value = LLVMBuildLoad(builder, pointer, varName);
 
-        int bracktCnt = ctx.L_BRACKT().size();
-        Type currentType = varType;
-        for (int i = 0; i < bracktCnt; i++) {
-            currentType = ((ArrayType)currentType).elementType;
-        }
+        // System.out.println("get lval name : " + varName);
 
-        LLVMValueRef tmp = new LLVMValueRef();
-
-        return tmp;
+        return pointer;
     }
 
     // get Expr type.
     @Override public LLVMValueRef visitPAREN(SysYParser.PARENContext ctx) {
-        return visitChildren(ctx);
-    }
-    @Override public LLVMValueRef visitVarCall(SysYParser.VarCallContext ctx) {
-        visitChildren(ctx);
-        LLVMValueRef tmp = new LLVMValueRef();
+        visit(ctx.L_PAREN());
+        LLVMValueRef tmp = visit(ctx.exp());
+        visit(ctx.R_PAREN());
 
         return tmp;
+    }
+    @Override public LLVMValueRef visitVarCall(SysYParser.VarCallContext ctx) {
+        LLVMValueRef pointer = visitChildren(ctx);
+        String name = ctx.lVal().IDENT().getText();
+        LLVMValueRef value = LLVMBuildLoad(builder, pointer, name);
+        
+        return value;
     }
     @Override public LLVMValueRef visitConstInt(SysYParser.ConstIntContext ctx) {
         return visitChildren(ctx);

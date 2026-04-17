@@ -98,7 +98,7 @@ parameter : INT IDENT (L_BRACKT R_BRACKT)   # ParameterArray
 
 parameters : parameter (COMMA parameter)* ; 
 
-varDecl : INT IDENT (ASSIGN exp)? (COMMA IDENT (ASSIGN exp)?)* SEMICOLON          # IntDeclare
+varDecl : (CONST)? INT IDENT (ASSIGN exp)? SEMICOLON          # IntDeclare
         | INT IDENT (L_BRACKT number R_BRACKT)+ (ASSIGN arrayAssign)? SEMICOLON   # ArrayDeclare
         ;
 
