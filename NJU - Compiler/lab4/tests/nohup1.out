@@ -1,9 +1,7 @@
-Error type 4 at Line 5: Redefined function:a.
-Error type 1 at Line 10: Undefined variable:b.
-Error type 3 at Line 12: Redefined variable:test1.
-Error type 5 at Line 14: Unmatched assign type:Int and Int[].
-Error type 6 at Line 15: Unmatched operator type.
-Error type 8 at Line 16: Incompatible function arguments.
-Error type 9 at Line 17: Subscripted value is not an array.
-Error type 10 at Line 18: Called object type Int is not a function.
-Error type 11 at Line 19: Cannot assign a value to a function a.
+; ModuleID = 'module'
+source_filename = "module"
+
+define i32 @main() {
+mainEntry:
+  ret i32 -2
+}

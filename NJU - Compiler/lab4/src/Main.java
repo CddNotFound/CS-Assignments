@@ -51,13 +51,6 @@ public class Main
             BaseVisitor visitor = new BaseVisitor();
             visitor.visit(tree);
 
-            if (!visitor.errorList.isEmpty()) {
-                for (String errMessage : visitor.errorList) {
-                    System.out.println(errMessage);
-                }
-            } else {
-                System.err.println("No semantic errors in the program!");
-            }
         }
         
     }

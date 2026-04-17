@@ -10,27 +10,48 @@ import java.util.HashMap;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
+import org.bytedeco.javacpp.Pointer;
+import org.bytedeco.javacpp.PointerPointer;
+import org.bytedeco.llvm.LLVM.*;
+import static org.bytedeco.llvm.global.LLVM.*;
 
-public class BaseVisitor extends SysYParserBaseVisitor<T>{
+
+public class BaseVisitor extends SysYParserBaseVisitor<LLVMValueRef>{
     Scope currentScope;
-    ParseTreeProperty<Type> nodeTypes;
 
     // lab 4:
-    int varCnt;
+    int varCnt, blockCnt;
+
+    LLVMModuleRef module;
+    LLVMBuilderRef builder;
+    LLVMTypeRef i32Type;
+    LLVMValueRef zero, one;
 
     public BaseVisitor() {
-        nodeTypes = new ParseTreeProperty<Type>();
-        varCnt = 0;
+        varCnt = blockCnt = 0;
+
+        LLVMInitializeCore(LLVMGetGlobalPassRegistry());
+        LLVMLinkInMCJIT();
+        LLVMInitializeNativeAsmPrinter();
+        LLVMInitializeNativeAsmParser();
+        LLVMInitializeNativeTarget(); 
+
+        module = LLVMModuleCreateWithName("module");
+        builder = LLVMCreateBuilder();
+        i32Type = LLVMInt32Type();
+        zero = LLVMConstInt(i32Type, 0, 0);
+        one = LLVMConstInt(i32Type, 1, 0);
     }
 
-    @Override public T visitProg(SysYParser.ProgContext ctx) {
+    @Override public LLVMValueRef visitProg(SysYParser.ProgContext ctx) { 
+
         currentScope = new Scope("GlobalScope", null);
-        T tmp = visitChildren(ctx); 
-        nodeTypes.put(ctx, tmp.type);
+        LLVMValueRef tmp = visitChildren(ctx); 
+        LLVMDumpModule(module);
         return tmp;
     }
 
-    @Override public T visitTerminal(TerminalNode node) {
+    @Override public LLVMValueRef visitTerminal(TerminalNode node) {
         Token token = node.getSymbol();
         int type = token.getType();
         String text = token.getText();
@@ -50,151 +71,270 @@ public class BaseVisitor extends SysYParserBaseVisitor<T>{
         } else if (type == 8) { // else
         }
 
-        T tmp = new T();
+        LLVMValueRef tmp = new LLVMValueRef();
         return tmp;
     }
 
-    @Override public T visitBlock(SysYParser.BlockContext ctx) {
-        T tmp = visitChildren(ctx);
+    @Override public LLVMValueRef visitBlock(SysYParser.BlockContext ctx) {
+        LLVMValueRef tmp = visitChildren(ctx);
         
-        nodeTypes.put(ctx, tmp.type);
         return tmp;
     }
 
-    @Override public T visitFunctionDecl(SysYParser.FunctionDeclContext ctx) {
-        T tmp = visitChildren(ctx);
+    @Override public LLVMValueRef visitFunctionDecl(SysYParser.FunctionDeclContext ctx) {
         
-        nodeTypes.put(ctx, tmp.type);
+        LLVMTypeRef returnType = i32Type;
+        PointerPointer<Pointer> argumentTypes = new PointerPointer<>(0);
+        LLVMTypeRef ft = LLVMFunctionType(returnType, argumentTypes, 0, 0);
+        LLVMValueRef function = LLVMAddFunction(module, ctx.funcDecl().IDENT().getText(), ft);
+        
+        String str = ctx.funcDecl().IDENT().getText() + "Entry";
+        LLVMBasicBlockRef block1 = LLVMAppendBasicBlock(function, str);
+        LLVMPositionBuilderAtEnd(builder, block1);
+
+
+
+        LLVMValueRef tmp = visitChildren(ctx);
+        
         return tmp;
     }
 
-    @Override public T visitParameters(SysYParser.ParametersContext ctx) {
-        T tmp = visitChildren(ctx);
+    @Override public LLVMValueRef visitDecimal(SysYParser.DecimalContext ctx) {
+        visitChildren(ctx);
 
-        nodeTypes.put(ctx, tmp.type);
+        String str = ctx.getText();
+        int len = str.length();
+        int res = 0;
+        for (int i = 0; i < len; i++) {
+            res = res * 10 + (str.charAt(i) - 48);
+        }
+        // System.out.println("num Decimal = " + res);
+        LLVMValueRef t = LLVMConstInt(i32Type, res, 0);
+        LLVMValueRef result = LLVMBuildAdd(builder, t, zero, /* varName:String */"result");
+
+        return result;
+    }
+	@Override public LLVMValueRef visitBinary(SysYParser.BinaryContext ctx) {
+        visitChildren(ctx);
+
+        String str = ctx.getText();
+        int len = str.length();
+        int res = 0;
+        for (int i = 2; i < len; i++) {
+            res = (res << 1) | (str.charAt(i) - 48);
+        }
+        LLVMValueRef t = LLVMConstInt(i32Type, res, 0);
+        LLVMValueRef result = LLVMBuildAdd(builder, t, zero, /* varName:String */"result");
+
+        return result;
+    }
+	@Override public LLVMValueRef visitOctal(SysYParser.OctalContext ctx) {
+        visitChildren(ctx);
+
+        String str = ctx.getText();
+        int len = str.length();
+        int res = 0;
+        for (int i = 1; i < len; i++) {
+            res = (res << 3) + (str.charAt(i) - 48);
+        }
+        LLVMValueRef t = LLVMConstInt(i32Type, res, 0);
+        LLVMValueRef result = LLVMBuildAdd(builder, t, zero, /* varName:String */"result");
+
+        return result;
+    }
+	@Override public LLVMValueRef visitHexadecimal(SysYParser.HexadecimalContext ctx) {
+        visitChildren(ctx);
+
+        String str = ctx.getText();
+        int len = str.length();
+        int res = 0;
+        for (int i = 2; i < len; i++) {
+            char ch = str.charAt(i);
+            if (ch >= '0' && ch <= '9') {
+                res = (res << 4) + (ch - 48);
+            } else if (ch >= 'a' && ch <= 'f') {
+                res = (res << 4) + (ch - 97 + 10);
+            } else {
+                res = (res << 4) + (ch - 65 + 10);
+            }
+        }
+        LLVMValueRef t = LLVMConstInt(i32Type, res, 0);
+        LLVMValueRef result = LLVMBuildAdd(builder, t, zero, /* varName:String */"result");
+
+        return result;
+    }
+
+    @Override public LLVMValueRef visitParameters(SysYParser.ParametersContext ctx) {
+        LLVMValueRef tmp = visitChildren(ctx);
+
         return tmp;
     }
     
-    @Override public T visitFunctionCall(SysYParser.FunctionCallContext ctx) {
-        T tmp = new T();
+    @Override public LLVMValueRef visitFunctionCall(SysYParser.FunctionCallContext ctx) {
+        LLVMValueRef tmp = new LLVMValueRef();
         
         visitChildren(ctx);
         
-        tmp.type = new IntType();
-        nodeTypes.put(ctx, tmp.type);
         return tmp;
     }
 
-	@Override public T visitVariableDecl(SysYParser.VariableDeclContext ctx) {    
-        T tmp = visitChildren(ctx);
+	@Override public LLVMValueRef visitVariableDecl(SysYParser.VariableDeclContext ctx) {    
+        LLVMValueRef tmp = visitChildren(ctx);
 
-        nodeTypes.put(ctx, tmp.type);
         return tmp;
     }
 
-    @Override public T visitWhileLoop(SysYParser.WhileLoopContext ctx) {
-        T tmp = visitChildren(ctx);
+    @Override public LLVMValueRef visitWhileLoop(SysYParser.WhileLoopContext ctx) {
+        LLVMValueRef tmp = visitChildren(ctx);
 
-        nodeTypes.put(ctx, tmp.type);
         return tmp;
     }
 
-    @Override public T visitIfElse(SysYParser.IfElseContext ctx) {
-        T tmp = visitChildren(ctx);
+    @Override public LLVMValueRef visitIfElse(SysYParser.IfElseContext ctx) {
+        LLVMValueRef tmp = visitChildren(ctx);
         
-        nodeTypes.put(ctx, tmp.type);
         return tmp;
     }
 
-	@Override public T visitReturn(SysYParser.ReturnContext ctx) {
-        visitChildren(ctx);
+	@Override public LLVMValueRef visitReturn(SysYParser.ReturnContext ctx) {
+        visit(ctx.RETURN());
+        LLVMValueRef tmp = visit(ctx.exp());
+        visit(ctx.SEMICOLON());
 
-        return new T();
+        LLVMBuildRet(builder, tmp);
+
+        return new LLVMValueRef();
     }
     
-	@Override public T visitExpd(SysYParser.ExpdContext ctx) {
-        T tmp = visitChildren(ctx);
+	@Override public LLVMValueRef visitExpd(SysYParser.ExpdContext ctx) {
+        LLVMValueRef tmp = visitChildren(ctx);
 
-        nodeTypes.put(ctx, tmp.type);
         return tmp;
     }
 
-    @Override public T visitVarAssign(SysYParser.VarAssignContext ctx) {
+    @Override public LLVMValueRef visitVarAssign(SysYParser.VarAssignContext ctx) {
         visitChildren(ctx);
 
-        Type leftInfo = nodeTypes.get(ctx.lVal());
-        Type rightInfo = nodeTypes.get(ctx.exp());
-        
-        T tmp = new T();
-        tmp.type = leftInfo;
+        LLVMValueRef tmp = new LLVMValueRef();
 
-        nodeTypes.put(ctx, tmp.type);
         return tmp;
     }
 
-    @Override public T visitUnaryOp1(SysYParser.UnaryOp1Context ctx) {
-        visitChildren(ctx);
+    @Override public LLVMValueRef visitUnaryOp1(SysYParser.UnaryOp1Context ctx) {
+        LLVMValueRef tmp = visitChildren(ctx);
+        String str = ctx.getText();
+        LLVMValueRef result;
+        if (str.charAt(0) == '+') {
+            // System.out.println("Op = +");
+            result = tmp;
+        } else if (str.charAt(0) == '-') {
+            // System.out.println("Op = -");
+            result = LLVMBuildSub(builder, zero, tmp, "result");
+        } else {
+            // System.out.println("Op = !");
+            if (tmp.equals(zero)) {
+                result = LLVMConstInt(i32Type, 1, 0);
+            } else {
+                result = zero;
+            }
+        }
 
-        T tmp = new T();
-        tmp.type = new IntType();
-        nodeTypes.put(ctx, tmp.type);
-        return tmp;
+        return result;
     }
-    @Override public T visitMulOp(SysYParser.MulOpContext ctx) {
-        visitChildren(ctx);
+    @Override public LLVMValueRef visitMulOp(SysYParser.MulOpContext ctx) {
+        LLVMValueRef left = visit(ctx.exp(0));
+        int opType = 0;
+        if (ctx.MUL() != null) {
+            visit(ctx.MUL());
+            opType = 1;
+        } else if (ctx.DIV() != null) {
+            visit(ctx.DIV());
+            opType = 2;
+        } else {
+            visit(ctx.MOD());
+            opType = 3;
+        }
+        LLVMValueRef right = visit(ctx.exp(1));
 
-        T tmp = new T();
-        tmp.type = new IntType();
+        LLVMValueRef result;
+        if (opType == 1) {
+            result = LLVMBuildMul(builder, left, right, "result");
+        } else if (opType == 2) {
+            result = LLVMBuildSDiv(builder, left, right, "result");
+        } else {
+            result = LLVMBuildSRem(builder, left, right, "result");
+        }
 
-        nodeTypes.put(ctx, tmp.type);
-        return tmp;
+        return result;
     }
-    @Override public T visitPlusOp(SysYParser.PlusOpContext ctx) {
-        visitChildren(ctx);
+    @Override public LLVMValueRef visitPlusOp(SysYParser.PlusOpContext ctx) {
+        LLVMValueRef left = visit(ctx.exp(0));
+        int opType = 0;
+        if (ctx.PLUS() != null) {
+            visit(ctx.PLUS());
+            opType = 1;
+        } else {
+            visit(ctx.MINUS());
+            opType = 2;
+        }
+        LLVMValueRef right = visit(ctx.exp(1));
 
-        T tmp = new T();
-        tmp.type = new IntType();
+        LLVMValueRef result;
+        if (opType == 1) {
+            result = LLVMBuildAdd(builder, left, right, "result");
+        } else {
+            result = LLVMBuildSub(builder, left, right, "result");
+        }
 
-        nodeTypes.put(ctx, tmp.type);
-        return tmp;
+        return result;
     }
-    @Override public T visitAndOp(SysYParser.AndOpContext ctx) {
-        visitChildren(ctx);
-        T tmp = new T();
+    @Override public LLVMValueRef visitAndOp(SysYParser.AndOpContext ctx) {
+        LLVMValueRef left = visit(ctx.exp(0));
+        int opType = 0;
+        if (ctx.BIT_AND() != null) {
+            visit(ctx.BIT_AND());
+            opType = 1;
+        } else {
+            visit(ctx.BIT_OR());
+            opType = 2;
+        }
+        LLVMValueRef right = visit(ctx.exp(1));
 
-        tmp.type = new IntType();
+        LLVMValueRef result;
+        if (opType == 1) {
+            result = LLVMBuildAnd(builder, left, right, "result");
+        } else {
+            result = LLVMBuildOr(builder, left, right, "result");
+        }
 
-        nodeTypes.put(ctx, tmp.type);
-        return tmp;
+        return result;
     }
 
-    @Override public T visitAllType(SysYParser.AllTypeContext ctx) { 
+    @Override public LLVMValueRef visitAllType(SysYParser.AllTypeContext ctx) { 
         return visitChildren(ctx); 
     }
 
-    @Override public T visitIntDeclare(SysYParser.IntDeclareContext ctx) {
-        T tmp = visitChildren(ctx);
+    @Override public LLVMValueRef visitIntDeclare(SysYParser.IntDeclareContext ctx) {
+        LLVMValueRef tmp = visitChildren(ctx);
         
         int intCnt = ctx.IDENT().size();
         for (int i = 0; i < intCnt; i++) {
             currentScope.define(ctx.IDENT(i).getText(), new IntType());
         }
 
-        nodeTypes.put(ctx, tmp.type);
         return tmp;
     }
 
-    @Override public T visitArrayDeclare(SysYParser.ArrayDeclareContext ctx) {
-        System.out.println("Error: Can't declare an array!");
+    @Override public LLVMValueRef visitArrayDeclare(SysYParser.ArrayDeclareContext ctx) {
+        // System.out.println("Error: Can't declare an array!");
 
-        T tmp = visitChildren(ctx);
+        LLVMValueRef tmp = visitChildren(ctx);
 
-        nodeTypes.put(ctx, tmp.type);
         return tmp;
     }
 
-    @Override public T visitFuncDecl(SysYParser.FuncDeclContext ctx) {
-        T tmp = visitChildren(ctx); 
+    @Override public LLVMValueRef visitFuncDecl(SysYParser.FuncDeclContext ctx) {
+        LLVMValueRef tmp = visitChildren(ctx); 
 
         FunctionType function = new FunctionType();
         function.retType = new IntType();
@@ -231,13 +371,11 @@ public class BaseVisitor extends SysYParserBaseVisitor<T>{
         currentScope = currentScope.getEnclosScope();
         currentScope.define(ctx.IDENT().getText(), function);
 
-        nodeTypes.put(ctx, tmp.type);
         return tmp;
     }
 
 
-    // Error type 1: Undefined variable.
-    @Override public T visitLVal(SysYParser.LValContext ctx) {
+    @Override public LLVMValueRef visitLVal(SysYParser.LValContext ctx) {
         visitChildren(ctx);
         String varName = ctx.IDENT().getText();
         Type varType = currentScope.resolve(varName);
@@ -248,35 +386,27 @@ public class BaseVisitor extends SysYParserBaseVisitor<T>{
             currentType = ((ArrayType)currentType).elementType;
         }
 
-        T tmp = new T();
-        tmp.type = currentType;
+        LLVMValueRef tmp = new LLVMValueRef();
 
-        nodeTypes.put(ctx, tmp.type);
         return tmp;
     }
 
     // get Expr type.
-    @Override public T visitPAREN(SysYParser.PARENContext ctx) {
-        visitChildren(ctx);
-        T tmp = new T();
-        tmp.type = nodeTypes.get(ctx.exp());
-        nodeTypes.put(ctx, tmp.type);
-        return tmp;
+    @Override public LLVMValueRef visitPAREN(SysYParser.PARENContext ctx) {
+        return visitChildren(ctx);
     }
-    @Override public T visitVarCall(SysYParser.VarCallContext ctx) {
+    @Override public LLVMValueRef visitVarCall(SysYParser.VarCallContext ctx) {
         visitChildren(ctx);
-        T tmp = new T();
-        tmp.type = nodeTypes.get(ctx.lVal());
-        nodeTypes.put(ctx, tmp.type);
-        return tmp;
-    }
-    @Override public T visitConstInt(SysYParser.ConstIntContext ctx) {
-        visitChildren(ctx);
-        T tmp = new T();
-        tmp.type = new IntType();
+        LLVMValueRef tmp = new LLVMValueRef();
 
-        nodeTypes.put(ctx, tmp.type);
         return tmp;
+    }
+    @Override public LLVMValueRef visitConstInt(SysYParser.ConstIntContext ctx) {
+        return visitChildren(ctx);
+        // visitChildren(ctx);
+        // LLVMValueRef tmp = new LLVMValueRef();
+
+        // return tmp;
     }
 
     public String getType(Type type) {
@@ -295,5 +425,10 @@ public class BaseVisitor extends SysYParserBaseVisitor<T>{
         } else {
             return "Function";
         }
+    }
+
+    public String newBlock(String name) {
+        ++blockCnt;
+        return name + blockCnt;
     }
 }

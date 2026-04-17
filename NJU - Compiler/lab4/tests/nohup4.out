@@ -1,4 +1,0 @@
-Error type 5 at Line 9: Unmatched assign type:Int and Int[][].
-Error type 6 at Line 10: Unmatched operator type.
-Error type 9 at Line 11: Subscripted value is not an array.
-Error type 10 at Line 12: Called object type Int is not a function.

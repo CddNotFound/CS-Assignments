@@ -30,12 +30,6 @@ LOGICAL_OR : '||';
 COMMA : ',' ; 
 SEMICOLON : ';' ; 
 
-INTEGER_CONST : Decimal
-         | Binary
-         | Octal
-         | Hexadecimal
-         ; 
-
 IDENT : '_'+ WORD*
    | (LETTER)+WORD*;
 

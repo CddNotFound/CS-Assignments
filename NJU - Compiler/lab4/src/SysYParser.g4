@@ -42,8 +42,11 @@ lVal
    ;
 
 number
-   : INTEGER_CONST
-   ;
+   : Decimal       # Decimal
+   | Binary        # Binary
+   | Octal         # Octal
+   | Hexadecimal   # Hexadecimal
+   ; 
 
 unaryOp
    : PLUS
