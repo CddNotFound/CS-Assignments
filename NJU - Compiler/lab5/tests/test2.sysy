@@ -1,11 +1,10 @@
-int a = 1;
-int b = 3;
-int c = 4;
-
+int a = 10;
 int main() {
-    int d = a + b;
-    int f = d * b % c;
-    a = a + b;
-    return f - (a + b + c) % d;
-    
+    if (a != 10) {
+        a = 2;
+    }
+    else {
+        a = 20;
+    }
+    return a;
 }
