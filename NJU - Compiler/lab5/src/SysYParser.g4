@@ -12,8 +12,10 @@ stat : block                                              # CodeBlock
      | IF L_PAREN cond R_PAREN stat (ELSE stat)?          # IfElse
      | RETURN exp? ';'                                    # Return
      | exp ';'                                            # Expd
-     | WHILE L_PAREN cond R_PAREN stat                   # WhileLoop
+     | WHILE L_PAREN cond R_PAREN stat                    # WhileLoop
      | lVal ASSIGN exp SEMICOLON                          # VarAssign
+     | CONTINUE ';'                                       # Continue
+     | BREAK ';'                                          # Break
      ;
 
 block : L_BRACE stat* R_BRACE ;
@@ -98,7 +100,7 @@ parameter : INT IDENT (L_BRACKT R_BRACKT)   # ParameterArray
 
 parameters : parameter (COMMA parameter)* ; 
 
-varDecl : (CONST)? INT IDENT (ASSIGN exp)? SEMICOLON          # IntDeclare
+varDecl : (CONST)? INT IDENT (ASSIGN exp)? SEMICOLON                              # IntDeclare
         | INT IDENT (L_BRACKT number R_BRACKT)+ (ASSIGN arrayAssign)? SEMICOLON   # ArrayDeclare
         ;
 

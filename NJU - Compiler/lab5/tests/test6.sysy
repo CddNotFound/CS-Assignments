@@ -1,0 +1,29 @@
+int test_nested_loop_jump(int n, int m) {
+    int total = 0;
+    int i = 0;
+    
+    while (i < n) {
+        i = i + 1;
+        
+        if (i == 2) {
+            continue;
+        }
+        
+        int j = 0;
+        while (j < m) {
+            j = j + 1;
+            
+            if (j == 4) {
+                break;
+            }
+            
+            total = total + i + j;
+        }
+        
+        if (total > 50) {
+            break;
+        }
+    }
+    
+    return total;
+}

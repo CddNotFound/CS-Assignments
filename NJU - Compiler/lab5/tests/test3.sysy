@@ -1,11 +1,22 @@
-int test_while_loop(int n) {
-    int sum = 0;
-    int i = 0;
+int check_second_stage(int val) {
+    // 这是一个带有特定返回值的函数
+    // 如果短路实现正确，且进入函数的第一个参数 x <= 0，这个函数根本不应该被执行
+    if (val == 99) {
+        return 1;
+    }
+    return 0;
+}
+
+int test_and_short_circuit(int x, int y) {
+    int status = 0;
     
-    while (i <= n) {
-        sum = sum + i;
-        i = i + 1;
+    // 如果 x > 0 为 false (即 x <= 0)，则立即短路跳出
+    // 绝不能触发 check_second_stage(y) 的函数调用
+    if (x > 0 && check_second_stage(y) == 1) {
+        status = 1;
+    } else {
+        status = 2;
     }
     
-    return sum;
+    return status;
 }

@@ -45,7 +45,8 @@ test: compile
 	nohup java -classpath ./classes:$(CLASSPATH) Main ./tests/test3.sysy ./tests/test3.ll > tests/nohup3.out &
 	nohup java -classpath ./classes:$(CLASSPATH) Main ./tests/test4.sysy ./tests/test4.ll > tests/nohup4.out &
 	nohup java -classpath ./classes:$(CLASSPATH) Main ./tests/test5.sysy ./tests/test5.ll > tests/nohup5.out &
-# 	nohup java -classpath ./classes:$(CLASSPATH) Main ./tests/test6.sysy ./tests/test6.ll > tests/nohup6.out &
+	nohup java -classpath ./classes:$(CLASSPATH) Main ./tests/test6.sysy ./tests/test6.ll > tests/nohup6.out &
+	nohup java -classpath ./classes:$(CLASSPATH) Main ./tests/test7.sysy ./tests/test7.ll > tests/nohup7.out &
 
 clean:
 	rm -f src/*.tokens

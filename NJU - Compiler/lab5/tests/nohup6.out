@@ -1,0 +1,88 @@
+; ModuleID = 'module'
+source_filename = "module"
+
+define i32 @test_nested_loop_jump(i32 %0, i32 %1) {
+test_nested_loop_jumpEntry:
+  %n = alloca i32, align 4
+  store i32 %0, i32* %n, align 4
+  %m = alloca i32, align 4
+  store i32 %1, i32* %m, align 4
+  %total = alloca i32, align 4
+  store i32 0, i32* %total, align 4
+  %i = alloca i32, align 4
+  store i32 0, i32* %i, align 4
+  %j = alloca i32, align 4
+  br label %WhileCondition1
+
+WhileCondition1:                                  ; preds = %IfExit12, %IfTrue4, %test_nested_loop_jumpEntry
+  %i1 = load i32, i32* %i, align 4
+  %n2 = load i32, i32* %n, align 4
+  %result = icmp slt i32 %i1, %n2
+  %result3 = zext i1 %result to i32
+  %cond1 = icmp ne i32 %result3, 0
+  br i1 %cond1, label %WhileLoop2, label %WhileExit3
+
+WhileLoop2:                                       ; preds = %WhileCondition1
+  %i4 = load i32, i32* %i, align 4
+  %result5 = add i32 %i4, 1
+  store i32 %result5, i32* %i, align 4
+  %i6 = load i32, i32* %i, align 4
+  %result7 = icmp eq i32 %i6, 2
+  %result8 = zext i1 %result7 to i32
+  %cond2 = icmp ne i32 %result8, 0
+  br i1 %cond2, label %IfTrue4, label %IfExit5
+
+WhileExit3:                                       ; preds = %IfTrue11, %WhileCondition1
+  %total26 = load i32, i32* %total, align 4
+  ret i32 %total26
+
+IfTrue4:                                          ; preds = %WhileLoop2
+  br label %WhileCondition1
+
+IfExit5:                                          ; preds = %WhileLoop2
+  store i32 0, i32* %j, align 4
+  br label %WhileCondition6
+
+WhileCondition6:                                  ; preds = %IfExit10, %IfExit5
+  %j9 = load i32, i32* %j, align 4
+  %m10 = load i32, i32* %m, align 4
+  %result11 = icmp slt i32 %j9, %m10
+  %result12 = zext i1 %result11 to i32
+  %cond3 = icmp ne i32 %result12, 0
+  br i1 %cond3, label %WhileLoop7, label %WhileExit8
+
+WhileLoop7:                                       ; preds = %WhileCondition6
+  %j13 = load i32, i32* %j, align 4
+  %result14 = add i32 %j13, 1
+  store i32 %result14, i32* %j, align 4
+  %j15 = load i32, i32* %j, align 4
+  %result16 = icmp eq i32 %j15, 4
+  %result17 = zext i1 %result16 to i32
+  %cond4 = icmp ne i32 %result17, 0
+  br i1 %cond4, label %IfTrue9, label %IfExit10
+
+WhileExit8:                                       ; preds = %IfTrue9, %WhileCondition6
+  %total23 = load i32, i32* %total, align 4
+  %result24 = icmp sgt i32 %total23, 50
+  %result25 = zext i1 %result24 to i32
+  %cond5 = icmp ne i32 %result25, 0
+  br i1 %cond5, label %IfTrue11, label %IfExit12
+
+IfTrue9:                                          ; preds = %WhileLoop7
+  br label %WhileExit8
+
+IfExit10:                                         ; preds = %WhileLoop7
+  %total18 = load i32, i32* %total, align 4
+  %i19 = load i32, i32* %i, align 4
+  %result20 = add i32 %total18, %i19
+  %j21 = load i32, i32* %j, align 4
+  %result22 = add i32 %result20, %j21
+  store i32 %result22, i32* %total, align 4
+  br label %WhileCondition6
+
+IfTrue11:                                         ; preds = %WhileExit8
+  br label %WhileExit3
+
+IfExit12:                                         ; preds = %WhileExit8
+  br label %WhileCondition1
+}
