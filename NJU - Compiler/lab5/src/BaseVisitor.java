@@ -315,11 +315,11 @@ public class BaseVisitor extends SysYParserBaseVisitor<LLVMValueRef>{
     }
 
     @Override public LLVMValueRef visitWhileLoop(SysYParser.WhileLoopContext ctx) {
-        LLVMBasicBlockRef block = LLVMAppendBasicBlock(currentFunction, newBlock("WhileLoop"));
         LLVMBasicBlockRef conditionCheck = LLVMAppendBasicBlock(currentFunction, newBlock("WhileCondition"));
+        LLVMBasicBlockRef block = LLVMAppendBasicBlock(currentFunction, newBlock("WhileLoop"));
         LLVMBasicBlockRef exit = LLVMAppendBasicBlock(currentFunction, newBlock("WhileExit"));
-        LLVMBuildBr(builder, conditionCheck);
-
+        
+        LLVMBuildBr(builder, conditionCheck);  
         LLVMPositionBuilderAtEnd(builder, conditionCheck);
         LLVMValueRef cond = visit(ctx.cond());
         cond = LLVMBuildICmp(builder, LLVMIntNE, cond, LLVMConstInt(i32Type, 0, 0), newConditionVar());
@@ -327,15 +327,16 @@ public class BaseVisitor extends SysYParserBaseVisitor<LLVMValueRef>{
 
         LLVMPositionBuilderAtEnd(builder, block);
         visit(ctx.stat());
+        LLVMBuildBr(builder, conditionCheck);
+
         LLVMPositionBuilderAtEnd(builder, exit);
 
-        // condition
-        
         
         return null;
     }
 
     @Override public LLVMValueRef visitIfElse(SysYParser.IfElseContext ctx) {
+        LLVMBasicBlockRef currentBlock = LLVMGetInsertBlock(builder);
         if (ctx.ELSE() != null) {
             LLVMBasicBlockRef ifBlock = LLVMAppendBasicBlock(currentFunction, newBlock("IfTrue"));
             LLVMBasicBlockRef elseBlock = LLVMAppendBasicBlock(currentFunction, newBlock("IfFalse"));
@@ -343,16 +344,26 @@ public class BaseVisitor extends SysYParserBaseVisitor<LLVMValueRef>{
             
             LLVMValueRef cond = visit(ctx.cond());
             cond = LLVMBuildICmp(builder, LLVMIntNE, cond, LLVMConstInt(i32Type, 0, 0), newConditionVar());
-            
+            // if (true) ifBlock else elseBlock;
             LLVMBuildCondBr(builder, cond, ifBlock, elseBlock);
             
             LLVMPositionBuilderAtEnd(builder, ifBlock);
             visit(ctx.stat(0));
             LLVMBuildBr(builder, ifExit);
+            // LLVMBasicBlockRef finishIfBlock = LLVMGetInsertBlock(builder);
+            
+            // LLVMPositionBuilderAtEnd(builder, ifBlock);
+            // br ifExit
             
             LLVMPositionBuilderAtEnd(builder, elseBlock);
             visit(ctx.stat(1));
             LLVMBuildBr(builder, ifExit);
+            // LLVMBasicBlockRef finishElseBlock = LLVMGetInsertBlock(builder);
+            // LLVMPositionBuilderAtEnd(builder, elseBlock);
+            // br ifExit
+            // LLVMBuildBr(builder, ifExit);
+            
+
             LLVMPositionBuilderAtEnd(builder, ifExit);
         } else {
             LLVMBasicBlockRef ifBlock = LLVMAppendBasicBlock(currentFunction, newBlock("IfTrue"));
@@ -360,12 +371,21 @@ public class BaseVisitor extends SysYParserBaseVisitor<LLVMValueRef>{
             
             LLVMValueRef cond = visit(ctx.cond());
             cond = LLVMBuildICmp(builder, LLVMIntNE, cond, LLVMConstInt(i32Type, 0, 0), newConditionVar());
-            
+            // if (true) ifBlock else ifExit;
             LLVMBuildCondBr(builder, cond, ifBlock, ifExit);
-
+            
             LLVMPositionBuilderAtEnd(builder, ifBlock);
             visit(ctx.stat(0));
             LLVMBuildBr(builder, ifExit);
+            // LLVMBasicBlockRef finishIfBlock = LLVMGetInsertBlock(builder);
+            // LLVMPositionBuilderAtEnd(builder, ifBlock);
+            // br ifExit;
+            
+            // LLVMPositionBuilderAtEnd(builder, currentBlock);
+            // if (LLVMGetBasicBlockTerminator(finishIfBlock) == null) {
+                // LLVMPositionBuilderAtEnd(builder, ifBlock);
+            // }
+
             LLVMPositionBuilderAtEnd(builder, ifExit);
         }
 

@@ -1,10 +1,11 @@
-int a = 10;
-int main() {
-    if (a != 10) {
-        a = 2;
+int test_while_loop(int n) {
+    int sum = 0;
+    int i = 0;
+    
+    while (i <= n) {
+        sum = sum + i;
+        i = i + 1;
     }
-    else {
-        a = 20;
-    }
-    return a;
+    
+    return sum;
 }

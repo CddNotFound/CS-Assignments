@@ -1,0 +1,77 @@
+; ModuleID = 'module'
+source_filename = "module"
+
+define i32 @test_nested_control(i32 %0, i32 %1) {
+test_nested_controlEntry:
+  %start = alloca i32, align 4
+  store i32 %0, i32* %start, align 4
+  %end = alloca i32, align 4
+  store i32 %1, i32* %end, align 4
+  %count = alloca i32, align 4
+  store i32 0, i32* %count, align 4
+  %current = alloca i32, align 4
+  %start1 = load i32, i32* %start, align 4
+  store i32 %start1, i32* %current, align 4
+  br label %WhileCondition1
+
+WhileCondition1:                                  ; preds = %IfExit6, %test_nested_controlEntry
+  %current2 = load i32, i32* %current, align 4
+  %end3 = load i32, i32* %end, align 4
+  %result = icmp slt i32 %current2, %end3
+  %result4 = zext i1 %result to i32
+  %cond1 = icmp ne i32 %result4, 0
+  br i1 %cond1, label %WhileLoop2, label %WhileExit3
+
+WhileLoop2:                                       ; preds = %WhileCondition1
+  %current5 = load i32, i32* %current, align 4
+  %result6 = icmp eq i32 %current5, 5
+  %result7 = zext i1 %result6 to i32
+  %current8 = load i32, i32* %current, align 4
+  %result9 = icmp eq i32 %current8, 10
+  %result10 = zext i1 %result9 to i32
+  %result11 = or i32 %result7, %result10
+  %cond2 = icmp ne i32 %result11, 0
+  br i1 %cond2, label %IfTrue4, label %IfFalse5
+
+WhileExit3:                                       ; preds = %WhileCondition1
+  %count27 = load i32, i32* %count, align 4
+  ret i32 %count27
+
+IfTrue4:                                          ; preds = %WhileLoop2
+  %count12 = load i32, i32* %count, align 4
+  %result13 = add i32 %count12, 2
+  store i32 %result13, i32* %count, align 4
+  br label %IfExit6
+
+IfFalse5:                                         ; preds = %WhileLoop2
+  %current14 = load i32, i32* %current, align 4
+  %result15 = icmp sgt i32 %current14, 15
+  %result16 = zext i1 %result15 to i32
+  %current17 = load i32, i32* %current, align 4
+  %result18 = icmp sle i32 %current17, 20
+  %result19 = zext i1 %result18 to i32
+  %result20 = and i32 %result16, %result19
+  %cond3 = icmp ne i32 %result20, 0
+  br i1 %cond3, label %IfTrue7, label %IfFalse8
+
+IfExit6:                                          ; preds = %IfExit9, %IfTrue4
+  %current25 = load i32, i32* %current, align 4
+  %result26 = add i32 %current25, 1
+  store i32 %result26, i32* %current, align 4
+  br label %WhileCondition1
+
+IfTrue7:                                          ; preds = %IfFalse5
+  %count21 = load i32, i32* %count, align 4
+  %result22 = add i32 %count21, 5
+  store i32 %result22, i32* %count, align 4
+  br label %IfExit9
+
+IfFalse8:                                         ; preds = %IfFalse5
+  %count23 = load i32, i32* %count, align 4
+  %result24 = add i32 %count23, 1
+  store i32 %result24, i32* %count, align 4
+  br label %IfExit9
+
+IfExit9:                                          ; preds = %IfFalse8, %IfTrue7
+  br label %IfExit6
+}

@@ -1,25 +1,35 @@
 ; ModuleID = 'module'
 source_filename = "module"
 
-@a = global i32 10
+define i32 @test_while_loop(i32 %0) {
+test_while_loopEntry:
+  %n = alloca i32, align 4
+  store i32 %0, i32* %n, align 4
+  %sum = alloca i32, align 4
+  store i32 0, i32* %sum, align 4
+  %i = alloca i32, align 4
+  store i32 0, i32* %i, align 4
+  br label %WhileCondition1
 
-define i32 @main() {
-mainEntry:
-  %a = load i32, i32* @a, align 4
-  %result = icmp ne i32 %a, 10
-  %result1 = zext i1 %result to i32
-  %cond1 = icmp ne i32 %result1, 0
-  br i1 %cond1, label %IfTrue1, label %IfFalse2
+WhileCondition1:                                  ; preds = %WhileLoop2, %test_while_loopEntry
+  %i1 = load i32, i32* %i, align 4
+  %n2 = load i32, i32* %n, align 4
+  %result = icmp sle i32 %i1, %n2
+  %result3 = zext i1 %result to i32
+  %cond1 = icmp ne i32 %result3, 0
+  br i1 %cond1, label %WhileLoop2, label %WhileExit3
 
-IfTrue1:                                          ; preds = %mainEntry
-  store i32 2, i32* @a, align 4
-  br label %IfExit3
+WhileLoop2:                                       ; preds = %WhileCondition1
+  %sum4 = load i32, i32* %sum, align 4
+  %i5 = load i32, i32* %i, align 4
+  %result6 = add i32 %sum4, %i5
+  store i32 %result6, i32* %sum, align 4
+  %i7 = load i32, i32* %i, align 4
+  %result8 = add i32 %i7, 1
+  store i32 %result8, i32* %i, align 4
+  br label %WhileCondition1
 
-IfFalse2:                                         ; preds = %mainEntry
-  store i32 20, i32* @a, align 4
-  br label %IfExit3
-
-IfExit3:                                          ; preds = %IfFalse2, %IfTrue1
-  %a2 = load i32, i32* @a, align 4
-  ret i32 %a2
+WhileExit3:                                       ; preds = %WhileCondition1
+  %sum9 = load i32, i32* %sum, align 4
+  ret i32 %sum9
 }

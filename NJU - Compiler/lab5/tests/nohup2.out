@@ -1,24 +1,65 @@
 ; ModuleID = 'module'
 source_filename = "module"
 
-@a = global i32 10
+define i32 @test_logical(i32 %0, i32 %1, i32 %2) {
+test_logicalEntry:
+  %x = alloca i32, align 4
+  store i32 %0, i32* %x, align 4
+  %y = alloca i32, align 4
+  store i32 %1, i32* %y, align 4
+  %z = alloca i32, align 4
+  store i32 %2, i32* %z, align 4
+  %flag = alloca i32, align 4
+  store i32 0, i32* %flag, align 4
+  %x1 = load i32, i32* %x, align 4
+  %result = icmp sgt i32 %x1, 0
+  %result2 = zext i1 %result to i32
+  %y3 = load i32, i32* %y, align 4
+  %result4 = icmp sgt i32 %y3, 0
+  %result5 = zext i1 %result4 to i32
+  %result6 = and i32 %result2, %result5
+  %cond1 = icmp ne i32 %result6, 0
+  br i1 %cond1, label %IfTrue1, label %IfExit2
 
-define i32 @main() {
-mainEntry:
-  br label %WhileCondition2
+IfTrue1:                                          ; preds = %test_logicalEntry
+  store i32 1, i32* %flag, align 4
+  br label %IfExit2
 
-WhileLoop1:                                       ; preds = %WhileCondition2
-  %a1 = load i32, i32* @a, align 4
-  %result2 = sub i32 %a1, 1
-  store i32 %result2, i32* @a, align 4
+IfExit2:                                          ; preds = %IfTrue1, %test_logicalEntry
+  %x7 = load i32, i32* %x, align 4
+  %result8 = icmp slt i32 %x7, 0
+  %result9 = zext i1 %result8 to i32
+  %y10 = load i32, i32* %y, align 4
+  %result11 = icmp slt i32 %y10, 0
+  %result12 = zext i1 %result11 to i32
+  %result13 = or i32 %result9, %result12
+  %cond2 = icmp ne i32 %result13, 0
+  br i1 %cond2, label %IfTrue3, label %IfExit4
 
-WhileCondition2:                                  ; preds = %mainEntry
-  %a = load i32, i32* @a, align 4
-  %result = or i32 1, %a
-  %cond1 = icmp ne i32 %result, 0
-  br i1 %cond1, label %WhileLoop1, label %WhileExit3
+IfTrue3:                                          ; preds = %IfExit2
+  store i32 2, i32* %flag, align 4
+  br label %IfExit4
 
-WhileExit3:                                       ; preds = %WhileCondition2
-  %a3 = load i32, i32* @a, align 4
-  ret i32 %a3
+IfExit4:                                          ; preds = %IfTrue3, %IfExit2
+  %x14 = load i32, i32* %x, align 4
+  %result15 = icmp eq i32 %x14, 1
+  %result16 = zext i1 %result15 to i32
+  %y17 = load i32, i32* %y, align 4
+  %result18 = icmp eq i32 %y17, 2
+  %result19 = zext i1 %result18 to i32
+  %result20 = and i32 %result16, %result19
+  %z21 = load i32, i32* %z, align 4
+  %result22 = icmp eq i32 %z21, 3
+  %result23 = zext i1 %result22 to i32
+  %result24 = or i32 %result20, %result23
+  %cond3 = icmp ne i32 %result24, 0
+  br i1 %cond3, label %IfTrue5, label %IfExit6
+
+IfTrue5:                                          ; preds = %IfExit4
+  store i32 3, i32* %flag, align 4
+  br label %IfExit6
+
+IfExit6:                                          ; preds = %IfTrue5, %IfExit4
+  %flag25 = load i32, i32* %flag, align 4
+  ret i32 %flag25
 }

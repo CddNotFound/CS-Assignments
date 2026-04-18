@@ -1,0 +1,19 @@
+int test_nested_control(int start, int end) {
+    int count = 0;
+    int current = start;
+    
+    while (current < end) {
+        if (current == 5 || current == 10) {
+            count = count + 2;
+        } else {
+            if (current > 15 && current <= 20) {
+                count = count + 5;
+            } else {
+                count = count + 1;
+            }
+        }
+        current = current + 1;
+    }
+    
+    return count;
+}

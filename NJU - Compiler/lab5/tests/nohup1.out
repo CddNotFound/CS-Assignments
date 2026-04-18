@@ -1,28 +1,92 @@
 ; ModuleID = 'module'
 source_filename = "module"
 
-define i32 @f(i32 %0, i32 %1) {
-fEntry:
-  %i = alloca i32, align 4
-  store i32 %0, i32* %i, align 4
-  %j = alloca i32, align 4
-  store i32 %1, i32* %j, align 4
-  %b = alloca i32, align 4
-  %i1 = load i32, i32* %i, align 4
-  store i32 %i1, i32* %b, align 4
-  %i2 = load i32, i32* %i, align 4
-  store i32 %i2, i32* %j, align 4
-  %b3 = load i32, i32* %b, align 4
-  %j4 = load i32, i32* %j, align 4
-  %result = add i32 %b3, %j4
-  ret i32 %result
-}
-
-define i32 @main() {
-mainEntry:
+define i32 @test_relational(i32 %0, i32 %1) {
+test_relationalEntry:
   %a = alloca i32, align 4
-  store i32 1, i32* %a, align 4
+  store i32 %0, i32* %a, align 4
+  %b = alloca i32, align 4
+  store i32 %1, i32* %b, align 4
+  %result = alloca i32, align 4
+  store i32 0, i32* %result, align 4
   %a1 = load i32, i32* %a, align 4
-  %f = call i32 @f(i32 %a1, i32 3)
-  ret i32 %f
+  %b2 = load i32, i32* %b, align 4
+  %result3 = icmp eq i32 %a1, %b2
+  %result4 = zext i1 %result3 to i32
+  %cond1 = icmp ne i32 %result4, 0
+  br i1 %cond1, label %IfTrue1, label %IfFalse2
+
+IfTrue1:                                          ; preds = %test_relationalEntry
+  store i32 1, i32* %result, align 4
+  br label %IfExit3
+
+IfFalse2:                                         ; preds = %test_relationalEntry
+  %a5 = load i32, i32* %a, align 4
+  %b6 = load i32, i32* %b, align 4
+  %result7 = icmp ne i32 %a5, %b6
+  %result8 = zext i1 %result7 to i32
+  %cond2 = icmp ne i32 %result8, 0
+  br i1 %cond2, label %IfTrue4, label %IfExit5
+
+IfExit3:                                          ; preds = %IfExit5, %IfTrue1
+  %result29 = load i32, i32* %result, align 4
+  ret i32 %result29
+
+IfTrue4:                                          ; preds = %IfFalse2
+  %a9 = load i32, i32* %a, align 4
+  %b10 = load i32, i32* %b, align 4
+  %result11 = icmp sgt i32 %a9, %b10
+  %result12 = zext i1 %result11 to i32
+  %cond3 = icmp ne i32 %result12, 0
+  br i1 %cond3, label %IfTrue6, label %IfExit7
+
+IfExit5:                                          ; preds = %IfExit13, %IfFalse2
+  br label %IfExit3
+
+IfTrue6:                                          ; preds = %IfTrue4
+  store i32 2, i32* %result, align 4
+  br label %IfExit7
+
+IfExit7:                                          ; preds = %IfTrue6, %IfTrue4
+  %a13 = load i32, i32* %a, align 4
+  %b14 = load i32, i32* %b, align 4
+  %result15 = icmp sge i32 %a13, %b14
+  %result16 = zext i1 %result15 to i32
+  %cond4 = icmp ne i32 %result16, 0
+  br i1 %cond4, label %IfTrue8, label %IfExit9
+
+IfTrue8:                                          ; preds = %IfExit7
+  %result17 = load i32, i32* %result, align 4
+  %result18 = add i32 %result17, 10
+  store i32 %result18, i32* %result, align 4
+  br label %IfExit9
+
+IfExit9:                                          ; preds = %IfTrue8, %IfExit7
+  %a19 = load i32, i32* %a, align 4
+  %b20 = load i32, i32* %b, align 4
+  %result21 = icmp slt i32 %a19, %b20
+  %result22 = zext i1 %result21 to i32
+  %cond5 = icmp ne i32 %result22, 0
+  br i1 %cond5, label %IfTrue10, label %IfExit11
+
+IfTrue10:                                         ; preds = %IfExit9
+  store i32 3, i32* %result, align 4
+  br label %IfExit11
+
+IfExit11:                                         ; preds = %IfTrue10, %IfExit9
+  %a23 = load i32, i32* %a, align 4
+  %b24 = load i32, i32* %b, align 4
+  %result25 = icmp sle i32 %a23, %b24
+  %result26 = zext i1 %result25 to i32
+  %cond6 = icmp ne i32 %result26, 0
+  br i1 %cond6, label %IfTrue12, label %IfExit13
+
+IfTrue12:                                         ; preds = %IfExit11
+  %result27 = load i32, i32* %result, align 4
+  %result28 = add i32 %result27, 20
+  store i32 %result28, i32* %result, align 4
+  br label %IfExit13
+
+IfExit13:                                         ; preds = %IfTrue12, %IfExit11
+  br label %IfExit5
 }
