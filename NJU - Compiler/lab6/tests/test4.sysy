@@ -1,0 +1,18 @@
+int complex_fallback_check(int backup_val) {
+    // 模拟一个开销很大的检查函数
+    return backup_val + 10;
+}
+
+int test_or_short_circuit(int primary_mode, int backup_mode) {
+    int final_decision = 0;
+    
+    // 如果 primary_mode == 1 为 true，则立即短路跳出
+    // 绝不能触发 complex_fallback_check(backup_mode) 的函数调用
+    if (primary_mode == 1 || complex_fallback_check(backup_mode) >= 20) {
+        final_decision = 100;
+    } else {
+        final_decision = 200;
+    }
+    
+    return final_decision;
+}
