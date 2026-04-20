@@ -1,0 +1,17 @@
+; ModuleID = 'module'
+source_filename = "module"
+
+define i32 @main() {
+mainEntry:
+  ret i32 13
+}
+  .text
+  .globl main
+main:
+  addi sp, sp, 0
+mainEntry:
+  li a0, 13
+  addi sp, sp, 0
+  li a7, 93
+  ecall
+

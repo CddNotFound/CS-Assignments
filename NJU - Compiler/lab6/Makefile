@@ -40,8 +40,8 @@ test: compile
 # 	$(call git_commit, "test")
 	rm -f ./tests/nohup*.out
 	if [ -e nohup.out ]; then rm nohup.out; fi
-# 	nohup java -classpath ./classes:$(CLASSPATH) Main ./tests/test1.sysy ./tests/test1.ll > tests/nohup1.out &
-# 	nohup java -classpath ./classes:$(CLASSPATH) Main ./tests/test2.sysy ./tests/test2.ll > tests/nohup2.out &
+	nohup java -classpath ./classes:$(CLASSPATH) Main ./tests/test1.sysy ./tests/test1.ll > tests/nohup1.out &
+	nohup java -classpath ./classes:$(CLASSPATH) Main ./tests/test2.sysy ./tests/test2.ll > tests/nohup2.out &
 # 	nohup java -classpath ./classes:$(CLASSPATH) Main ./tests/test3.sysy ./tests/test3.ll > tests/nohup3.out &
 # 	nohup java -classpath ./classes:$(CLASSPATH) Main ./tests/test4.sysy ./tests/test4.ll > tests/nohup4.out &
 # 	nohup java -classpath ./classes:$(CLASSPATH) Main ./tests/test5.sysy ./tests/test5.ll > tests/nohup5.out &

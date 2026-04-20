@@ -15,9 +15,6 @@ import org.bytedeco.javacpp.PointerPointer;
 import org.bytedeco.llvm.LLVM.*;
 import static org.bytedeco.llvm.global.LLVM.*;
 
-import org.bytedeco.llvm.LLVM.*;
-import static org.bytedeco.llvm.global.LLVM.*;
-
 public class BaseVisitor extends SysYParserBaseVisitor<LLVMValueRef>{
     Scope currentScope;
 

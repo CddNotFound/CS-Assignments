@@ -11,8 +11,11 @@ import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
-// import sysYParser;
-// import .antlr.SysYLexer;
+
+import org.bytedeco.llvm.LLVM.*;
+import org.bytedeco.llvm.program.llvm;
+
+import static org.bytedeco.llvm.global.LLVM.*;
 
 public class Main
 {    
@@ -45,13 +48,53 @@ public class Main
         sysYParser.addErrorListener(myErrorListener);
 
         ParseTree tree = sysYParser.prog();
+        BaseVisitor visitor = new BaseVisitor();
         if (!myErrorListener.errorMessage.isEmpty()) {
             myErrorListener.printLexerErrorInformation();
         } else {
-            BaseVisitor visitor = new BaseVisitor();
             visitor.visit(tree);
+        }
+        
+        LLVMModuleRef module = visitor.module;
+        
+        // for (LLVMValueRef globalVar = LLVMGetFirstGlobal(module); globalVar != null; globalVar = LLVMGetNextGlobal(globalVar)) {
+            //     System.out.println("  .data");
+            //     System.out.println(globalVar.toString());
+            
+            // }
+            
+        LLVMValueRef main = LLVMGetFirstFunction(module);
+
+        AsmBuilder writer = new AsmBuilder();
+        String funcName = LLVMGetValueName(main).getString();
+
+        writer.buffer.append("  .text\n");
+        writer.buffer.append("  .globl " + funcName + "\n");
+        writer.prologue(funcName, 0);
+
+        for (LLVMBasicBlockRef block = LLVMGetFirstBasicBlock(main); block != null; block = LLVMGetNextBasicBlock(block)) {
+            String blockName = LLVMGetBasicBlockName(block).getString();
+            
+            writer.buffer.append(blockName + ":\n");
+            
+            for (LLVMValueRef inst = LLVMGetFirstInstruction(block); inst != null; inst = LLVMGetNextInstruction(inst)) {
+                int opcode = LLVMGetInstructionOpcode(inst);
+                int operandNum = LLVMGetNumOperands(inst);
+                if (operandNum == 2) {
+                    LLVMValueRef op1 = LLVMGetOperand(inst, 0);
+                    LLVMValueRef op2 = LLVMGetOperand(inst, 1);
+                    writer.output(opcode, operandNum, op1, op2);
+                } else if (operandNum == 1) {
+                    LLVMValueRef op1 = LLVMGetOperand(inst, 0);
+                    writer.output(opcode, operandNum, op1, null);
+                } else {
+                    writer.output(opcode, operandNum, null, null);
+                }
+            }
 
         }
         
+        writer.epilogue(0);
+        System.out.println(writer.buffer);
     }
 }
