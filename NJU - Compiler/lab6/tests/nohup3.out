@@ -1,0 +1,88 @@
+; ModuleID = 'module'
+source_filename = "module"
+
+@a = global i32 1
+@b = global i32 0
+
+define i32 @main() {
+mainEntry:
+  %c = alloca i32, align 4
+  store i32 3, i32* %c, align 4
+  %c1 = load i32, i32* %c, align 4
+  %a = load i32, i32* @a, align 4
+  %result = add i32 %c1, %a
+  %result2 = add i32 %result, 1
+  store i32 %result2, i32* @b, align 4
+  %d = alloca i32, align 4
+  store i32 10, i32* %d, align 4
+  %a3 = load i32, i32* @a, align 4
+  %b = load i32, i32* @b, align 4
+  %result4 = add i32 %a3, %b
+  %c5 = load i32, i32* %c, align 4
+  %result6 = add i32 %result4, %c5
+  %d7 = load i32, i32* %d, align 4
+  %result8 = add i32 %result6, %d7
+  ret i32 %result8
+}
+  .data
+a:
+  .word 1
+
+  .data
+b:
+  .word 0
+
+  .text
+  .globl main
+main:
+  addi sp, sp, -64
+mainEntry:
+  li t0, 3
+  sw t0, 60(sp)
+  lw t0, 60(sp)
+  sw t0, 56(sp)
+  la t0, a
+  lw t0, 0(t0)
+  sw t0, 52(sp)
+  lw t1, 56(sp)
+  la t0, a
+  lw t2, 0(t0)
+  add t0, t1, t2
+  sw t0, 48(sp)
+  lw t1, 48(sp)
+  li t2, 1
+  add t0, t1, t2
+  sw t0, 44(sp)
+  lw t0, 44(sp)
+  la t1, b
+  sw t0, 0(t1)
+  li t0, 10
+  sw t0, 40(sp)
+  la t0, a
+  lw t0, 0(t0)
+  sw t0, 36(sp)
+  la t0, b
+  lw t0, 0(t0)
+  sw t0, 32(sp)
+  lw t1, 36(sp)
+  la t0, b
+  lw t2, 0(t0)
+  add t0, t1, t2
+  sw t0, 28(sp)
+  lw t0, 60(sp)
+  sw t0, 24(sp)
+  lw t1, 28(sp)
+  lw t2, 24(sp)
+  add t0, t1, t2
+  sw t0, 20(sp)
+  lw t0, 40(sp)
+  sw t0, 16(sp)
+  lw t1, 20(sp)
+  lw t2, 16(sp)
+  add t0, t1, t2
+  sw t0, 12(sp)
+  lw a0, 12(sp)
+  addi sp, sp, 64
+  li a7, 93
+  ecall
+

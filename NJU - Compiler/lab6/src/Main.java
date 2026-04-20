@@ -2,7 +2,9 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.antlr.runtime.tree.TreeWizard.Visitor;
 import org.antlr.v4.runtime.CharStream;
@@ -56,21 +58,64 @@ public class Main
         }
         
         LLVMModuleRef module = visitor.module;
-        
-        // for (LLVMValueRef globalVar = LLVMGetFirstGlobal(module); globalVar != null; globalVar = LLVMGetNextGlobal(globalVar)) {
-            //     System.out.println("  .data");
-            //     System.out.println(globalVar.toString());
-            
-            // }
-            
-        LLVMValueRef main = LLVMGetFirstFunction(module);
-
         AsmBuilder writer = new AsmBuilder();
+        
+        int spOffset = 0;
+        
+        LLVMValueRef main = LLVMGetFirstFunction(module);
         String funcName = LLVMGetValueName(main).getString();
+
+        for (LLVMValueRef globalVar = LLVMGetFirstGlobal(module); globalVar != null; globalVar = LLVMGetNextGlobal(globalVar)) {
+            String varName = LLVMGetValueName(globalVar).getString();        
+            LLVMValueRef initializer = LLVMGetInitializer(globalVar);
+            long value = LLVMConstIntGetSExtValue(initializer);
+
+            writer.buffer.append("  .data\n");
+            writer.buffer.append(varName + ":\n");
+            writer.buffer.append("  .word " + value + "\n\n");
+
+            writer.globalVar.add(varName);
+        }
+
+        for (LLVMBasicBlockRef block = LLVMGetFirstBasicBlock(main); block != null; block = LLVMGetNextBasicBlock(block)) {
+            
+            for (LLVMValueRef inst = LLVMGetFirstInstruction(block); inst != null; inst = LLVMGetNextInstruction(inst)) {
+                // int opcode = LLVMGetInstructionOpcode(inst);
+
+                String destName = LLVMGetValueName(inst).getString();
+                if (!destName.equals("")) {
+                    if (writer.offsetMp.getOrDefault(destName, null) == null) {
+                        spOffset -= 4;
+                        // System.out.println("put " + destName);
+                        writer.offsetMp.put(destName, spOffset);
+                    }
+                }
+
+                int len = LLVMGetNumOperands(inst);
+                for (int i = 0; i < len; i++) {
+                    LLVMValueRef v = LLVMGetOperand(inst, 0);
+                    String varName = LLVMGetValueName(v).getString();
+                    if (varName.equals("") || writer.offsetMp.getOrDefault(varName, null) != null) {
+                        continue;
+                    }
+                    
+                        // System.out.println("put " + varName);
+                    spOffset -= 4;
+                    writer.offsetMp.put(varName, spOffset);
+                }
+            }
+        }
+        // System.out.println("offset = " + spOffset);
+            
+        spOffset = (spOffset - 15) / 16 * 16;
+
+        for (Map.Entry<String, Integer> entry : writer.offsetMp.entrySet()) {
+            entry.setValue(entry.getValue() - spOffset);
+        }
 
         writer.buffer.append("  .text\n");
         writer.buffer.append("  .globl " + funcName + "\n");
-        writer.prologue(funcName, 0);
+        writer.prologue(funcName, spOffset);
 
         for (LLVMBasicBlockRef block = LLVMGetFirstBasicBlock(main); block != null; block = LLVMGetNextBasicBlock(block)) {
             String blockName = LLVMGetBasicBlockName(block).getString();
@@ -79,22 +124,37 @@ public class Main
             
             for (LLVMValueRef inst = LLVMGetFirstInstruction(block); inst != null; inst = LLVMGetNextInstruction(inst)) {
                 int opcode = LLVMGetInstructionOpcode(inst);
-                int operandNum = LLVMGetNumOperands(inst);
-                if (operandNum == 2) {
+
+                if (opcode == 27) {
+                    LLVMValueRef op1 = LLVMGetOperand(inst, 0);
+                    writer.load(op1, inst, "sp");
+                } else if (opcode == 28) {
                     LLVMValueRef op1 = LLVMGetOperand(inst, 0);
                     LLVMValueRef op2 = LLVMGetOperand(inst, 1);
-                    writer.output(opcode, operandNum, op1, op2);
-                } else if (operandNum == 1) {
-                    LLVMValueRef op1 = LLVMGetOperand(inst, 0);
-                    writer.output(opcode, operandNum, op1, null);
+                    
+                    writer.store(op1, op2, "sp");
                 } else {
-                    writer.output(opcode, operandNum, null, null);
+                    if (opcode == 26) {
+                        continue;
+                    }
+                    int operandNum = LLVMGetNumOperands(inst);
+                    if (operandNum == 2) {
+                        LLVMValueRef op1 = LLVMGetOperand(inst, 0);
+                        LLVMValueRef op2 = LLVMGetOperand(inst, 1);
+                        writer.output(opcode, operandNum, inst, op1, op2);
+                    } else if (operandNum == 1) {
+                        LLVMValueRef op1 = LLVMGetOperand(inst, 0);
+                        writer.output(opcode, operandNum, inst, op1, null);
+                    } else {
+                        writer.output(opcode, operandNum, inst, null, null);
+                    }
                 }
+
             }
 
         }
         
-        writer.epilogue(0);
+        writer.epilogue(-spOffset);
         System.out.println(writer.buffer);
     }
 }

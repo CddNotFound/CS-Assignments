@@ -1,3 +1,15 @@
-int main(){
-    return 3 + 2 * 5;
+int x = 1;
+
+int main() {
+    int a = 10;
+    int b = 20;
+    int c = 30;
+    int d = 40;
+    
+    // 多次复杂的加法运算，产生大量临时虚拟寄存器
+    int res1 = a + b + x;      // 10 + 20 + 1 = 31
+    int res2 = c + d + res1;   // 30 + 40 + 31 = 101
+    x = res2 + 1;              // x 变为 102
+    
+    return x + a;              // 102 + 10 = 112
 }
