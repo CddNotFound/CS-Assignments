@@ -1,0 +1,2 @@
+Error type B at Line 2: missing INTEGER_CONST at ']'.
+Error type B at Line 3: mismatched input ']' expecting {'+', '-', '*', '/', '%', '&', '|', ';', '['}.
