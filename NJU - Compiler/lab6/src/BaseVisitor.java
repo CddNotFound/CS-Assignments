@@ -62,7 +62,7 @@ public class BaseVisitor extends SysYParserBaseVisitor<LLVMValueRef>{
 
         currentScope = new Scope("GlobalScope", null);
         LLVMValueRef tmp = visitChildren(ctx); 
-        LLVMDumpModule(module);
+        // LLVMDumpModule(module);
         return tmp;
     }
 
@@ -105,7 +105,6 @@ public class BaseVisitor extends SysYParserBaseVisitor<LLVMValueRef>{
         }
 
         LLVMTypeRef returnType = i32Type;
-        // PointerPointer<Pointer> argumentTypes = new PointerPointer<>(0);
             
         PointerPointer<Pointer> argumentTypes;
         int paraCnt = 0;
