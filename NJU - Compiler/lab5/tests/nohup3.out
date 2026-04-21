@@ -1,0 +1,63 @@
+; ModuleID = 'module'
+source_filename = "module"
+
+define i32 @check_second_stage(i32 %0) {
+check_second_stageEntry:
+  %val = alloca i32, align 4
+  store i32 %0, i32* %val, align 4
+  %val1 = load i32, i32* %val, align 4
+  %result = icmp eq i32 %val1, 99
+  %result2 = zext i1 %result to i32
+  %cond1 = icmp ne i32 %result2, 0
+  br i1 %cond1, label %IfTrue1, label %IfExit2
+
+IfTrue1:                                          ; preds = %check_second_stageEntry
+  ret i32 1
+  br label %IfExit2
+
+IfExit2:                                          ; preds = %IfTrue1, %check_second_stageEntry
+  ret i32 0
+}
+
+define i32 @test_and_short_circuit(i32 %0, i32 %1) {
+test_and_short_circuitEntry:
+  %x = alloca i32, align 4
+  store i32 %0, i32* %x, align 4
+  %y = alloca i32, align 4
+  store i32 %1, i32* %y, align 4
+  %status = alloca i32, align 4
+  store i32 0, i32* %status, align 4
+  %condResult = alloca i32, align 4
+  %x1 = load i32, i32* %x, align 4
+  %result = icmp sgt i32 %x1, 0
+  %result2 = zext i1 %result to i32
+  %cond2 = icmp ne i32 %result2, 0
+  store i32 %result2, i32* %condResult, align 4
+  br i1 %cond2, label %lTrue6, label %lFalse7
+
+IfTrue3:                                          ; preds = %lFalse7
+  store i32 1, i32* %status, align 4
+  br label %IfExit5
+
+IfFalse4:                                         ; preds = %lFalse7
+  store i32 2, i32* %status, align 4
+  br label %IfExit5
+
+IfExit5:                                          ; preds = %IfFalse4, %IfTrue3
+  %status8 = load i32, i32* %status, align 4
+  ret i32 %status8
+
+lTrue6:                                           ; preds = %test_and_short_circuitEntry
+  %y3 = load i32, i32* %y, align 4
+  %check_second_stage = call i32 @check_second_stage(i32 %y3)
+  %result4 = icmp eq i32 %check_second_stage, 1
+  %result5 = zext i1 %result4 to i32
+  %result6 = and i32 %result2, %result5
+  store i32 %result6, i32* %condResult, align 4
+  br label %lFalse7
+
+lFalse7:                                          ; preds = %lTrue6, %test_and_short_circuitEntry
+  %condResult7 = load i32, i32* %condResult, align 4
+  %cond3 = icmp ne i32 %condResult7, 0
+  br i1 %cond3, label %IfTrue3, label %IfFalse4
+}

@@ -1,0 +1,54 @@
+; ModuleID = 'module'
+source_filename = "module"
+
+define i32 @complex_fallback_check(i32 %0) {
+complex_fallback_checkEntry:
+  %backup_val = alloca i32, align 4
+  store i32 %0, i32* %backup_val, align 4
+  %backup_val1 = load i32, i32* %backup_val, align 4
+  %result = add i32 %backup_val1, 10
+  ret i32 %result
+}
+
+define i32 @test_or_short_circuit(i32 %0, i32 %1) {
+test_or_short_circuitEntry:
+  %primary_mode = alloca i32, align 4
+  store i32 %0, i32* %primary_mode, align 4
+  %backup_mode = alloca i32, align 4
+  store i32 %1, i32* %backup_mode, align 4
+  %final_decision = alloca i32, align 4
+  store i32 0, i32* %final_decision, align 4
+  %condResult = alloca i32, align 4
+  %primary_mode1 = load i32, i32* %primary_mode, align 4
+  %result = icmp eq i32 %primary_mode1, 1
+  %result2 = zext i1 %result to i32
+  %cond1 = icmp ne i32 %result2, 0
+  store i32 %result2, i32* %condResult, align 4
+  br i1 %cond1, label %lTrue5, label %lFalse4
+
+IfTrue1:                                          ; preds = %lTrue5
+  store i32 100, i32* %final_decision, align 4
+  br label %IfExit3
+
+IfFalse2:                                         ; preds = %lTrue5
+  store i32 200, i32* %final_decision, align 4
+  br label %IfExit3
+
+IfExit3:                                          ; preds = %IfFalse2, %IfTrue1
+  %final_decision8 = load i32, i32* %final_decision, align 4
+  ret i32 %final_decision8
+
+lFalse4:                                          ; preds = %test_or_short_circuitEntry
+  %backup_mode3 = load i32, i32* %backup_mode, align 4
+  %complex_fallback_check = call i32 @complex_fallback_check(i32 %backup_mode3)
+  %result4 = icmp sge i32 %complex_fallback_check, 20
+  %result5 = zext i1 %result4 to i32
+  %result6 = or i32 %result2, %result5
+  store i32 %result6, i32* %condResult, align 4
+  br label %lTrue5
+
+lTrue5:                                           ; preds = %lFalse4, %test_or_short_circuitEntry
+  %condResult7 = load i32, i32* %condResult, align 4
+  %cond2 = icmp ne i32 %condResult7, 0
+  br i1 %cond2, label %IfTrue1, label %IfFalse2
+}

@@ -1,0 +1,113 @@
+; ModuleID = 'module'
+source_filename = "module"
+
+define i32 @get_abs(i32 %0) {
+get_absEntry:
+  %value = alloca i32, align 4
+  store i32 %0, i32* %value, align 4
+  %value1 = load i32, i32* %value, align 4
+  %result = icmp slt i32 %value1, 0
+  %result2 = zext i1 %result to i32
+  %cond1 = icmp ne i32 %result2, 0
+  br i1 %cond1, label %IfTrue1, label %IfExit2
+
+IfTrue1:                                          ; preds = %get_absEntry
+  %value3 = load i32, i32* %value, align 4
+  %result4 = sub i32 0, %value3
+  ret i32 %result4
+  br label %IfExit2
+
+IfExit2:                                          ; preds = %IfTrue1, %get_absEntry
+  %value5 = load i32, i32* %value, align 4
+  ret i32 %value5
+}
+
+define i32 @check_range(i32 %0, i32 %1, i32 %2) {
+check_rangeEntry:
+  %val = alloca i32, align 4
+  store i32 %0, i32* %val, align 4
+  %min = alloca i32, align 4
+  store i32 %1, i32* %min, align 4
+  %max = alloca i32, align 4
+  store i32 %2, i32* %max, align 4
+  %condResult = alloca i32, align 4
+  %val1 = load i32, i32* %val, align 4
+  %min2 = load i32, i32* %min, align 4
+  %result = icmp sge i32 %val1, %min2
+  %result3 = zext i1 %result to i32
+  %cond2 = icmp ne i32 %result3, 0
+  store i32 %result3, i32* %condResult, align 4
+  br i1 %cond2, label %lTrue5, label %lFalse6
+
+IfTrue3:                                          ; preds = %lFalse6
+  ret i32 1
+  br label %IfExit4
+
+IfExit4:                                          ; preds = %IfTrue3, %lFalse6
+  ret i32 0
+
+lTrue5:                                           ; preds = %check_rangeEntry
+  %val4 = load i32, i32* %val, align 4
+  %max5 = load i32, i32* %max, align 4
+  %result6 = icmp sle i32 %val4, %max5
+  %result7 = zext i1 %result6 to i32
+  %result8 = and i32 %result3, %result7
+  store i32 %result8, i32* %condResult, align 4
+  br label %lFalse6
+
+lFalse6:                                          ; preds = %lTrue5, %check_rangeEntry
+  %condResult9 = load i32, i32* %condResult, align 4
+  %cond3 = icmp ne i32 %condResult9, 0
+  br i1 %cond3, label %IfTrue3, label %IfExit4
+}
+
+define i32 @main_test(i32 %0, i32 %1) {
+main_testEntry:
+  %a = alloca i32, align 4
+  store i32 %0, i32* %a, align 4
+  %b = alloca i32, align 4
+  store i32 %1, i32* %b, align 4
+  %abs_a = alloca i32, align 4
+  %a1 = load i32, i32* %a, align 4
+  %get_abs = call i32 @get_abs(i32 %a1)
+  store i32 %get_abs, i32* %abs_a, align 4
+  %abs_b = alloca i32, align 4
+  %b2 = load i32, i32* %b, align 4
+  %get_abs3 = call i32 @get_abs(i32 %b2)
+  store i32 %get_abs3, i32* %abs_b, align 4
+  %total = alloca i32, align 4
+  store i32 0, i32* %total, align 4
+  br label %WhileCondition7
+
+WhileCondition7:                                  ; preds = %IfExit11, %main_testEntry
+  %abs_a4 = load i32, i32* %abs_a, align 4
+  %result = icmp sgt i32 %abs_a4, 0
+  %result5 = zext i1 %result to i32
+  %cond4 = icmp ne i32 %result5, 0
+  br i1 %cond4, label %WhileLoop8, label %WhileExit9
+
+WhileLoop8:                                       ; preds = %WhileCondition7
+  %abs_a6 = load i32, i32* %abs_a, align 4
+  %check_range = call i32 @check_range(i32 %abs_a6, i32 5, i32 10)
+  %result7 = icmp eq i32 %check_range, 1
+  %result8 = zext i1 %result7 to i32
+  %cond5 = icmp ne i32 %result8, 0
+  br i1 %cond5, label %IfTrue10, label %IfExit11
+
+WhileExit9:                                       ; preds = %WhileCondition7
+  %total14 = load i32, i32* %total, align 4
+  ret i32 %total14
+
+IfTrue10:                                         ; preds = %WhileLoop8
+  %total9 = load i32, i32* %total, align 4
+  %abs_b10 = load i32, i32* %abs_b, align 4
+  %result11 = add i32 %total9, %abs_b10
+  store i32 %result11, i32* %total, align 4
+  br label %IfExit11
+
+IfExit11:                                         ; preds = %IfTrue10, %WhileLoop8
+  %abs_a12 = load i32, i32* %abs_a, align 4
+  %result13 = sub i32 %abs_a12, 1
+  store i32 %result13, i32* %abs_a, align 4
+  br label %WhileCondition7
+}

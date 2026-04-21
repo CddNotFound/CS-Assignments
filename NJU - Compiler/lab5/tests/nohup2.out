@@ -1,0 +1,109 @@
+; ModuleID = 'module'
+source_filename = "module"
+
+define i32 @test_logical(i32 %0, i32 %1, i32 %2) {
+test_logicalEntry:
+  %x = alloca i32, align 4
+  store i32 %0, i32* %x, align 4
+  %y = alloca i32, align 4
+  store i32 %1, i32* %y, align 4
+  %z = alloca i32, align 4
+  store i32 %2, i32* %z, align 4
+  %flag = alloca i32, align 4
+  store i32 0, i32* %flag, align 4
+  %condResult = alloca i32, align 4
+  %x1 = load i32, i32* %x, align 4
+  %result = icmp sgt i32 %x1, 0
+  %result2 = zext i1 %result to i32
+  %cond1 = icmp ne i32 %result2, 0
+  store i32 %result2, i32* %condResult, align 4
+  %condResult8 = alloca i32, align 4
+  %condResult17 = alloca i32, align 4
+  %condResult18 = alloca i32, align 4
+  br i1 %cond1, label %lTrue3, label %lFalse4
+
+IfTrue1:                                          ; preds = %lFalse4
+  store i32 1, i32* %flag, align 4
+  br label %IfExit2
+
+IfExit2:                                          ; preds = %IfTrue1, %lFalse4
+  %x9 = load i32, i32* %x, align 4
+  %result10 = icmp slt i32 %x9, 0
+  %result11 = zext i1 %result10 to i32
+  %cond3 = icmp ne i32 %result11, 0
+  store i32 %result11, i32* %condResult8, align 4
+  br i1 %cond3, label %lTrue8, label %lFalse7
+
+lTrue3:                                           ; preds = %test_logicalEntry
+  %y3 = load i32, i32* %y, align 4
+  %result4 = icmp sgt i32 %y3, 0
+  %result5 = zext i1 %result4 to i32
+  %result6 = and i32 %result2, %result5
+  store i32 %result6, i32* %condResult, align 4
+  br label %lFalse4
+
+lFalse4:                                          ; preds = %lTrue3, %test_logicalEntry
+  %condResult7 = load i32, i32* %condResult, align 4
+  %cond2 = icmp ne i32 %condResult7, 0
+  br i1 %cond2, label %IfTrue1, label %IfExit2
+
+IfTrue5:                                          ; preds = %lTrue8
+  store i32 2, i32* %flag, align 4
+  br label %IfExit6
+
+IfExit6:                                          ; preds = %IfTrue5, %lTrue8
+  %x19 = load i32, i32* %x, align 4
+  %result20 = icmp eq i32 %x19, 1
+  %result21 = zext i1 %result20 to i32
+  %cond5 = icmp ne i32 %result21, 0
+  store i32 %result21, i32* %condResult18, align 4
+  br i1 %cond5, label %lTrue11, label %lFalse12
+
+lFalse7:                                          ; preds = %IfExit2
+  %y12 = load i32, i32* %y, align 4
+  %result13 = icmp slt i32 %y12, 0
+  %result14 = zext i1 %result13 to i32
+  %result15 = or i32 %result11, %result14
+  store i32 %result15, i32* %condResult8, align 4
+  br label %lTrue8
+
+lTrue8:                                           ; preds = %lFalse7, %IfExit2
+  %condResult16 = load i32, i32* %condResult8, align 4
+  %cond4 = icmp ne i32 %condResult16, 0
+  br i1 %cond4, label %IfTrue5, label %IfExit6
+
+IfTrue9:                                          ; preds = %lTrue14
+  store i32 3, i32* %flag, align 4
+  br label %IfExit10
+
+IfExit10:                                         ; preds = %IfTrue9, %lTrue14
+  %flag32 = load i32, i32* %flag, align 4
+  ret i32 %flag32
+
+lTrue11:                                          ; preds = %IfExit6
+  %y22 = load i32, i32* %y, align 4
+  %result23 = icmp eq i32 %y22, 2
+  %result24 = zext i1 %result23 to i32
+  %result25 = and i32 %result21, %result24
+  store i32 %result25, i32* %condResult18, align 4
+  br label %lFalse12
+
+lFalse12:                                         ; preds = %lTrue11, %IfExit6
+  %condResult26 = load i32, i32* %condResult18, align 4
+  %cond6 = icmp ne i32 %condResult26, 0
+  store i32 %condResult26, i32* %condResult17, align 4
+  br i1 %cond6, label %lTrue14, label %lFalse13
+
+lFalse13:                                         ; preds = %lFalse12
+  %z27 = load i32, i32* %z, align 4
+  %result28 = icmp eq i32 %z27, 3
+  %result29 = zext i1 %result28 to i32
+  %result30 = or i32 %condResult26, %result29
+  store i32 %result30, i32* %condResult17, align 4
+  br label %lTrue14
+
+lTrue14:                                          ; preds = %lFalse13, %lFalse12
+  %condResult31 = load i32, i32* %condResult17, align 4
+  %cond7 = icmp ne i32 %condResult31, 0
+  br i1 %cond7, label %IfTrue9, label %IfExit10
+}
