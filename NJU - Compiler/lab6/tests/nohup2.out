@@ -1,0 +1,44 @@
+  .data
+x:
+  .word 1
+
+  .text
+  .globl main
+main:
+  addi sp, sp, 0
+mainEntry:
+  la t1, x
+  lw t1, 0(t1)
+  addi t0, t1, 1
+  mv t4, t0
+  mv t0, t0
+  mv t3, t0
+  la t0, x
+  lw t0, 0(t0)
+  mv t5, t0
+  mv t1, t5
+  addi t0, t1, 1
+  mv t5, t0
+  mv t0, t0
+  mv t4, t0
+  mv t0, t3
+  mv t3, t0
+  mv t1, t3
+  addi t0, t1, 1
+  mv t3, t0
+  mv t0, t0
+  la t1, x
+  sw t0, 0(t1)
+  la t0, x
+  lw t0, 0(t0)
+  mv t4, t0
+  mv t1, t4
+  addi t0, t1, 1
+  mv t4, t0
+  mv t0, t0
+  mv t3, t0
+  li a0, 0
+  addi sp, sp, 0
+  li a7, 93
+  ecall
+

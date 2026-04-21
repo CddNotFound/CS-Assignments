@@ -1,0 +1,159 @@
+  .data
+g1:
+  .word 10
+
+  .data
+g2:
+  .word 20
+
+  .data
+g3:
+  .word 30
+
+  .data
+g4:
+  .word 40
+
+  .text
+  .globl main
+main:
+  addi sp, sp, 0
+mainEntry:
+  li t0, 1
+  mv t3, t0
+  li t0, 2
+  mv t4, t0
+  li t0, 3
+  mv t5, t0
+  li t0, 4
+  mv t6, t0
+  mv t0, t3
+  mv a1, t0
+  la t1, g1
+  lw t1, 0(t1)
+  mv t2, a1
+  add t0, t1, t2
+  mv a1, t0
+  mv t0, t0
+  la t1, g1
+  sw t0, 0(t1)
+  mv t0, t4
+  mv a1, t0
+  la t1, g2
+  lw t1, 0(t1)
+  mv t2, a1
+  add t0, t1, t2
+  mv a1, t0
+  mv t0, t0
+  la t1, g2
+  sw t0, 0(t1)
+  la t0, g1
+  lw t0, 0(t0)
+  mv a1, t0
+  la t0, g2
+  lw t0, 0(t0)
+  mv a2, t0
+  mv t1, a1
+  mv t2, a2
+  add t0, t1, t2
+  mv a1, t0
+  mv t0, t0
+  mv t5, t0
+  mv t0, t5
+  mv a1, t0
+  la t1, g3
+  lw t1, 0(t1)
+  mv t2, a1
+  add t0, t1, t2
+  mv a1, t0
+  mv t0, t0
+  la t1, g3
+  sw t0, 0(t1)
+  la t0, g3
+  lw t0, 0(t0)
+  mv a1, t0
+  mv t1, a1
+  la t2, g4
+  lw t2, 0(t2)
+  add t0, t1, t2
+  mv a1, t0
+  mv t0, t0
+  mv t6, t0
+  la t0, g4
+  lw t0, 0(t0)
+  mv a1, t0
+  mv t0, t6
+  mv a2, t0
+  mv t1, a1
+  mv t2, a2
+  add t0, t1, t2
+  mv a1, t0
+  mv t0, t0
+  la t1, g4
+  sw t0, 0(t1)
+  la t0, g1
+  lw t0, 0(t0)
+  mv a1, t0
+  la t0, g4
+  lw t0, 0(t0)
+  mv a2, t0
+  mv t1, a1
+  mv t2, a2
+  add t0, t1, t2
+  mv a1, t0
+  mv t0, t0
+  la t1, g1
+  sw t0, 0(t1)
+  la t0, g1
+  lw t0, 0(t0)
+  mv a1, t0
+  la t0, g2
+  lw t0, 0(t0)
+  mv a2, t0
+  mv t1, a1
+  mv t2, a2
+  add t0, t1, t2
+  mv a1, t0
+  la t0, g3
+  lw t0, 0(t0)
+  mv a2, t0
+  mv t1, a1
+  mv t2, a2
+  add t0, t1, t2
+  mv a1, t0
+  la t0, g4
+  lw t0, 0(t0)
+  mv a2, t0
+  mv t1, a1
+  mv t2, a2
+  add t0, t1, t2
+  mv a1, t0
+  mv t0, t3
+  mv t3, t0
+  mv t1, a1
+  mv t2, t3
+  add t0, t1, t2
+  mv t3, t0
+  mv t0, t4
+  mv t4, t0
+  mv t1, t3
+  mv t2, t4
+  add t0, t1, t2
+  mv t3, t0
+  mv t0, t5
+  mv t4, t0
+  mv t1, t3
+  mv t2, t4
+  add t0, t1, t2
+  mv t3, t0
+  mv t0, t6
+  mv t4, t0
+  mv t1, t3
+  mv t2, t4
+  add t0, t1, t2
+  mv t3, t0
+  mv a0, t0
+  addi sp, sp, 0
+  li a7, 93
+  ecall
+
