@@ -1,5 +1,5 @@
-STUID = 231220000
-STUNAME = 张三
+STUID = xxx
+STUNAME = cdd
 
 # DO NOT modify the following code!!!
 
@@ -11,7 +11,7 @@ GITFLAGS = -q --author='tracer-ics2025 <tracer@njuics.org>' --no-verify --allow-
 # 	-@while (test -e .git/index.lock); do sleep 0.1; done
 # 	-@(echo "> $(1)" && echo $(STUID) $(STUNAME) && uname -a && uptime) | git commit -F - $(GITFLAGS)
 # 	-@sync
-endef
+# endef
 
 _default:
 	@echo "Please run 'make' under subprojects."
