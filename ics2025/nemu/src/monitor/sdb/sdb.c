@@ -42,6 +42,14 @@ static char* rl_gets() {
   return line_read;
 }
 
+void ErrInvalidParameters() {
+  printf("Invalid parameters.\n");
+}
+
+void ErrUnknownOptions(char* cmd) {
+  printf("Unknown option(s): %s\n", cmd);
+}
+
 static int cmd_c(char *args) {
   cpu_exec(-1);
   return 0;
@@ -50,6 +58,58 @@ static int cmd_c(char *args) {
 
 static int cmd_q(char *args) {
   return -1;
+}
+
+static int cmd_si(char *args) {
+  int n = 1;
+  if (args != NULL) {
+    int len = strlen(args);
+    for (int i = 0; i < len; i++) {
+      n = n * 10 + (args[i] - '0');
+    }
+  }
+
+  cpu_exec(n);
+
+  return 0;
+}
+
+static int cmd_info(char *args) {
+  if (args == NULL) {
+    ErrInvalidParameters();
+    return 0;
+  }
+  
+  char* opt = strtok(args, " ");
+  char* extra = strtok(NULL, " ");
+  
+  if (extra != NULL) {
+    ErrInvalidParameters();
+    return 0;
+  }
+
+  if (strcmp(opt, "r") == 0) {
+    isa_reg_display();
+  } else if (strcmp(opt, "w") == 0) {
+    printf("Todo.\n");
+    // printf("info w\n");
+  } else {
+    ErrUnknownOptions(opt);
+    return 0;
+  }
+  
+  return 0;
+}
+
+static int cmd_p(char* args) {
+  if (args == NULL) {
+    ErrInvalidParameters();
+  }
+
+  bool success = false;
+  expr(args, &success);
+
+  return 0;
 }
 
 static int cmd_help(char *args);
@@ -62,6 +122,11 @@ static struct {
   { "help", "Display information about all supported commands", cmd_help },
   { "c", "Continue the execution of the program", cmd_c },
   { "q", "Exit NEMU", cmd_q },
+  { "si", "Execute N steps", cmd_si },
+  { "info", "Print the information of the program. \n\
+       info r - registor information\n\
+       info w - monitor information", cmd_info },
+  { "p", "Calculate the value of expr.", cmd_p },
 
   /* TODO: Add more commands */
 

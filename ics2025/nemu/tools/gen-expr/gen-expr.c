@@ -31,8 +31,55 @@ static char *code_format =
 "  return 0; "
 "}";
 
+const int inf32 = 2147483637;
+
+int choose(int x) {
+  return rand() % x;
+}
+
+void gen_rand_op() {
+  switch (choose(7)) {
+    case 0: printf(" + "); break;
+    case 1: printf(" - "); break;
+    case 2: printf(" * "); break;
+    case 3: printf(" / "); break;
+    case 4: printf(" == "); break;
+    case 5: printf(" != "); break;
+    default: printf(" && "); break;
+  }
+}
+
+void gen(char ch) {
+  printf("%c", ch);
+}
+
+void gen_num() {
+  int x = rand() % inf32;
+  printf("0x");
+  int res[10] = {0};
+  int cnt = 0;
+  while (x) {
+    res[cnt] = x % 16;
+    cnt += 1;
+    x >>= 4;
+  }
+
+  for (int i = cnt - 1; i >= 0; i--) {
+    if (res[i] <= 9) {
+      printf("%d", res[i]);
+    } else {
+      printf("%c", (res[i] - 10 + 'a'));
+    }
+  }
+}
+
 static void gen_rand_expr() {
-  buf[0] = '\0';
+  // buf[0] = '\0';
+  switch (choose(3)) {
+    case 0: gen_num(); break;
+    case 1: gen('('); gen_rand_expr(); gen(')'); break;
+    default: gen_rand_expr(); gen_rand_op(); gen_rand_expr(); break;
+  }
 }
 
 int main(int argc, char *argv[]) {
