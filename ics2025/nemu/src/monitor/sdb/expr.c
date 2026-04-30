@@ -25,7 +25,7 @@ enum {
   TK_PLUS, TK_MINUS, TK_MUL, TK_DIV, 
   TK_EQ, TK_NEQ,
   TK_AND, 
-  TK_NUMBER, 
+  TK_NUMBER, TK_NUMBERU, 
   TK_REGISTER, 
   TK_LPAREN, TK_RPAREN,
   // TK_GETVALUE
@@ -54,8 +54,9 @@ static struct rule {
   {"\\(", TK_LPAREN},   // left paren
   {"\\)", TK_RPAREN},   // right paren
   {"\\$[_a-zA-Z][_0-9a-zA-Z]*", TK_REGISTER},      // register name
-  // {"[1-9][0-9]*", TK_NUMBER}         // number
-  {"0x[0-9a-fA-F]*", TK_NUMBER}         // number
+  // {"[1-9][0-9]*", TK_NUMBER}           // number
+  {"0x[0-9a-fA-F]*u", TK_NUMBERU},         // number
+  {"0x[0-9a-fA-F]*", TK_NUMBER}          // number
 };
 
 #define NR_REGEX ARRLEN(rules)
@@ -84,7 +85,7 @@ typedef struct token {
   char str[32];
 } Token;
 
-static Token tokens[32] __attribute__((used)) = {};
+static Token tokens[65536] __attribute__((used)) = {};
 static int nr_token __attribute__((used))  = 0;
 
 static bool make_token(char *e) {
@@ -98,11 +99,11 @@ static bool make_token(char *e) {
     /* Try all rules one by one. */
     for (i = 0; i < NR_REGEX; i ++) {
       if (regexec(&re[i], e + position, 1, &pmatch, 0) == 0 && pmatch.rm_so == 0) {
-        char *substr_start = e + position;
+        // char *substr_start = e + position;
         int substr_len = pmatch.rm_eo;
 
-        Log("match rules[%d] = \"%s\" at position %d with len %d: %.*s",
-            i, rules[i].regex, position, substr_len, substr_len, substr_start);
+        // Log("match rules[%d] = \"%s\" at position %d with len %d: %.*s",
+        //     i, rules[i].regex, position, substr_len, substr_len, substr_start);
             
             /* TODO: Now a new token is recognized with rules[i]. Add codes
             * to record the token in the array `tokens'. For certain types
@@ -141,9 +142,9 @@ static bool make_token(char *e) {
   }
   nr_token = realCnt;
   
-  for (int i = 0; i < nr_token; i++) {
-    printf("%d:%s\n", tokens[i].type, tokens[i].str);
-  }
+  // for (int i = 0; i < nr_token; i++) {
+  //   printf("%d:%s\n", tokens[i].type, tokens[i].str);
+  // }
 
   return true;
 }
@@ -226,14 +227,17 @@ void ErrDividedByZero() {
   printf("Divided by zero.\n");
 }
 
-word_t eval(int p, int q) {
+word_t eval(int p, int q, bool *success) {
+  *success = true;
   if (p > q) {
-    return -1;
+    *success = false;
+    return 0;
   } else if (p == q) { // single number
     char* num = tokens[p].str;
     int len = strlen(num);
     int result = 0;
     for (int i = 2; i < len; i++) {
+      if (num[i] == 'u') { continue; }
       if (num[i] >= '0' && num[i] <= '9') {
         result = (result << 4) + (num[i] - '0');
       } else if (num[i] >= 'a' && num[i] <= 'f') {
@@ -245,15 +249,17 @@ word_t eval(int p, int q) {
 
     return result;
   } else if (check_parentheses(p, q)) {
-    return eval(p + 1, q - 1);
+    return eval(p + 1, q - 1, success);
   } else {
     int opIdx = getOperatorPosition(p, q);
     int opType = tokens[opIdx].type;
-    word_t left = eval(p, opIdx - 1);
-    word_t right = eval(opIdx + 1, q);
+    bool leftBool, rightBool;
+    word_t left = eval(p, opIdx - 1, &leftBool);
+    word_t right = eval(opIdx + 1, q, &rightBool);
     // printf("%d %d", (int)left, (int)right);
-    if (left == -1 || right == -1) { // invalid expr
-      return -1;
+    if (!leftBool || !rightBool) {  // invalid expr
+      *success = false;
+      return 0;
     }
     // printf("%d %d], : %d", p, q, (int)opType);
 
@@ -272,8 +278,10 @@ word_t eval(int p, int q) {
     } else {
       if (right == 0) {
         ErrDividedByZero();
-        return -1;
+        success = false;
+        return 0;
       }
+      // printf("???%d / %d \n", (int)left, (int)right);
       return left / right;
     }
   }
@@ -288,10 +296,10 @@ word_t expr(char *e, bool *success) {
     return 0;
   }
 
-  printf("%d\n", (int)eval(0, nr_token - 1));
+  // printf("%d\n", (int)eval(0, nr_token - 1));
 
   /* TODO: Insert codes to evaluate the expression. */
   // TODO();
-
-  return 0;
+  return eval(0, nr_token - 1, success);
+  // return 0;
 }

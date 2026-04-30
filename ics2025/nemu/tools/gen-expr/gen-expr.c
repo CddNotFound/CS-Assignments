@@ -22,6 +22,7 @@
 
 // this should be enough
 static char buf[65536] = {};
+static char *buf_ptr = buf;
 static char code_buf[65536 + 128] = {}; // a little larger than `buf`
 static char *code_format =
 "#include <stdio.h>\n"
@@ -32,30 +33,52 @@ static char *code_format =
 "}";
 
 const int inf32 = 2147483637;
+const int inf16 = 65536;
 
 int choose(int x) {
   return rand() % x;
 }
 
-void gen_rand_op() {
-  switch (choose(7)) {
-    case 0: printf(" + "); break;
-    case 1: printf(" - "); break;
-    case 2: printf(" * "); break;
-    case 3: printf(" / "); break;
-    case 4: printf(" == "); break;
-    case 5: printf(" != "); break;
-    default: printf(" && "); break;
+void gen_space() {
+  for (int i = 0; i < choose(5); i++) {
+    snprintf(buf_ptr, 10, " ");
+    buf_ptr += 1;
   }
 }
 
+void gen_rand_op() {
+  gen_space();
+  char *op;
+  switch (choose(20)) {
+    case 0: case 1: case 2: case 3: case 5:
+      op = " + "; break;
+    case 6: case 7: case 8: case 9: case 10:
+      op = " - "; break;
+    case 11: case 12: case 13: case 14: case 15:
+     op = " * "; break;
+    case 16:
+     op = " / "; break;
+    case 17: op = " == "; break;
+    case 18: op = " != "; break;
+    default: op = " && "; break;
+  }
+  snprintf(buf_ptr, 10, "%s", op);
+  buf_ptr += strlen(op);
+}
+
 void gen(char ch) {
-  printf("%c", ch);
+  gen_space();
+  snprintf(buf_ptr, 10, "%c", ch);
+  buf_ptr += 1;
 }
 
 void gen_num() {
-  int x = rand() % inf32;
-  printf("0x");
+  gen_space();
+  int x = rand() % inf16;
+
+  snprintf(buf_ptr, 10, "0x");
+  buf_ptr += 2;
+
   int res[10] = {0};
   int cnt = 0;
   while (x) {
@@ -66,19 +89,27 @@ void gen_num() {
 
   for (int i = cnt - 1; i >= 0; i--) {
     if (res[i] <= 9) {
-      printf("%d", res[i]);
+      snprintf(buf_ptr, 10, "%c", (char)res[i] + 48);
+      buf_ptr += 1;
     } else {
-      printf("%c", (res[i] - 10 + 'a'));
+      snprintf(buf_ptr, 10, "%c", (res[i] - 10 + 'a'));
+      buf_ptr += 1;
     }
   }
+  snprintf(buf_ptr, 10, "u");
+  buf_ptr += 1;
 }
 
-static void gen_rand_expr() {
+static void gen_rand_expr(int depth) {
   // buf[0] = '\0';
-  switch (choose(3)) {
-    case 0: gen_num(); break;
-    case 1: gen('('); gen_rand_expr(); gen(')'); break;
-    default: gen_rand_expr(); gen_rand_op(); gen_rand_expr(); break;
+  if (depth > 16) {
+    gen_num();
+  } else {
+    switch (choose(3)) {
+      case 0: gen_num(); break;
+      case 1: gen('('); gen_rand_expr(depth + 1); gen(')'); break;
+      default: gen_rand_expr(depth + 1); gen_rand_op(); gen_rand_expr(depth + 1); break;
+    }
   }
 }
 
@@ -90,10 +121,12 @@ int main(int argc, char *argv[]) {
     sscanf(argv[1], "%d", &loop);
   }
   int i;
-  for (i = 0; i < loop; i ++) {
-    gen_rand_expr();
+  for (i = 0; i < loop;) {
+    buf[0] = '\0';
+    buf_ptr = buf;
+    gen_rand_expr(1);
 
-    sprintf(code_buf, code_format, buf);
+    snprintf(code_buf, sizeof(code_buf), code_format, buf);
 
     FILE *fp = fopen("/tmp/.code.c", "w");
     assert(fp != NULL);
@@ -108,9 +141,15 @@ int main(int argc, char *argv[]) {
 
     int result;
     ret = fscanf(fp, "%d", &result);
-    pclose(fp);
+    int status = pclose(fp);
+
+    if (ret != 1 || status) {
+      continue;
+    }
+    // printf("%d-%d: " , i, loop);
 
     printf("%u %s\n", result, buf);
+    ++i;
   }
   return 0;
 }

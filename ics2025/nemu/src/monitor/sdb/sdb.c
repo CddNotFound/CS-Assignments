@@ -107,7 +107,9 @@ static int cmd_p(char* args) {
   }
 
   bool success = false;
-  expr(args, &success);
+  word_t result = expr(args, &success);
+
+  printf("%d\n", result);
 
   return 0;
 }
@@ -199,10 +201,49 @@ void sdb_mainloop() {
   }
 }
 
+// #define CONFIG_EXPR_TEST
+// #ifdef CONFIG_EXPR_TEST
+// static void expr_test() {
+//   char line[65536];
+//   int total = 0, fail = 0;
+
+//   while (fgets(line, sizeof(line), stdin) != NULL) {
+//     uint32_t expected;
+//     char expr_buf[65536];
+
+//     if (sscanf(line, "%u %[^\n]", &expected, expr_buf) != 2) {
+//       continue;
+//     }
+//     // printf("the expr is = %s\n", expr_buf);
+
+//     bool success = true;
+//     word_t got = expr(expr_buf, &success);
+//     total++;
+
+//     // printf("ans = %d, but got is = %d\n", expected, got);
+
+//     if (!success || got != expected) {
+//       printf("FAIL: expr=%s expected=%u got=" FMT_WORD "\n",
+//               expr_buf, expected, got);
+//       fail++;
+//     }
+//   }
+
+//   printf("expr test: %d/%d passed\n", total - fail, total);
+//   exit(fail != 0);
+// }
+// #endif
+
 void init_sdb() {
   /* Compile the regular expressions. */
   init_regex();
 
+  // #ifdef CONFIG_EXPR_TEST
+  //   expr_test();
+  // #endif
+
   /* Initialize the watchpoint pool. */
   init_wp_pool();
 }
+
+
