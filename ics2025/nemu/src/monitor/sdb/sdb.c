@@ -17,6 +17,7 @@
 #include <cpu/cpu.h>
 #include <readline/readline.h>
 #include <readline/history.h>
+#include <memory/paddr.h>
 #include "sdb.h"
 
 static int is_batch_mode = false;
@@ -48,6 +49,9 @@ void ErrInvalidParameters() {
 
 void ErrUnknownOptions(char* cmd) {
   printf("Unknown option(s): %s\n", cmd);
+}
+void ErrInvalidHexadecimalNumber() {
+  printf("Invalid hexadecimal number();\n");
 }
 
 static int cmd_c(char *args) {
@@ -114,6 +118,31 @@ static int cmd_p(char* args) {
   return 0;
 }
 
+static int cmd_x(char *args) {
+  if (args == NULL) {
+    ErrInvalidParameters();
+  }
+
+  char* nStr = strtok(args, " ");
+  char* addrStr = strtok(NULL, " ");
+  int nLen = strlen(nStr);
+  // int addrLen = strlen(addrStr);
+
+  int n = 0;
+  for (int i = 0; i < nLen; i++) {
+    n = n * 10 + nStr[i] - 48;
+  }
+
+  bool success;
+  paddr_t addr = expr(addrStr, &success);
+
+  for (int i = 0; i < n; i++) {
+    word_t val = paddr_read(addr + i * 4, 4);
+    printf(FMT_PADDR ": " FMT_WORD "\n", addr + i * 4, val);
+  }
+  return 0;
+}
+
 static int cmd_help(char *args);
 
 static struct {
@@ -129,7 +158,7 @@ static struct {
        info r - registor information\n\
        info w - monitor information", cmd_info },
   { "p", "Calculate the value of expr.", cmd_p },
-
+  { "x", "Scan memory.", cmd_x },
   /* TODO: Add more commands */
 
 };
