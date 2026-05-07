@@ -99,11 +99,11 @@ static bool make_token(char *e) {
     /* Try all rules one by one. */
     for (i = 0; i < NR_REGEX; i ++) {
       if (regexec(&re[i], e + position, 1, &pmatch, 0) == 0 && pmatch.rm_so == 0) {
-        char *substr_start = e + position;
+        // char *substr_start = e + position;
         int substr_len = pmatch.rm_eo;
 
-        Log("match rules[%d] = \"%s\" at position %d with len %d: %.*s",
-            i, rules[i].regex, position, substr_len, substr_len, substr_start);
+        // Log("match rules[%d] = \"%s\" at position %d with len %d: %.*s",
+        //     i, rules[i].regex, position, substr_len, substr_len, substr_start);
             
             /* TODO: Now a new token is recognized with rules[i]. Add codes
             * to record the token in the array `tokens'. For certain types
@@ -199,6 +199,10 @@ int getOperatorPosition(int p, int q) {
       continue;
     }
 
+    if (type == TK_MUL && tokens[i + 1].type == TK_REGISTER) {
+      continue;
+    }
+
     int curPriority = 3;
     switch (type) {
       case TK_AND:
@@ -232,10 +236,21 @@ word_t eval(int p, int q, bool *success) {
   if (p > q) {
     *success = false;
     return 0;
-  } else if (p == q) { // single number
+  } else if (p + 1 == q && tokens[p].type == TK_MUL) {   // register call
+    char* regName = tokens[p + 1].str;
+    bool ok;
+    word_t result = isa_reg_str2val(regName + 1, &ok);
+    if (!ok) {
+      success = false;
+      printf("Unknown register name.\n");
+      return 0;
+    }
+
+    return result;
+  }if (p == q) { // single number
     char* num = tokens[p].str;
     int len = strlen(num);
-    int result = 0;
+    unsigned int result = 0;
     for (int i = 2; i < len; i++) {
       if (num[i] == 'u') { continue; }
       if (num[i] >= '0' && num[i] <= '9') {
@@ -254,9 +269,8 @@ word_t eval(int p, int q, bool *success) {
     int opIdx = getOperatorPosition(p, q);
     int opType = tokens[opIdx].type;
     bool leftBool, rightBool;
-    word_t left = eval(p, opIdx - 1, &leftBool);
-    word_t right = eval(opIdx + 1, q, &rightBool);
-    // printf("%d %d", (int)left, (int)right);
+    unsigned int left = eval(p, opIdx - 1, &leftBool);
+    unsigned int right = eval(opIdx + 1, q, &rightBool);
     if (!leftBool || !rightBool) {  // invalid expr
       *success = false;
       return 0;

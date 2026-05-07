@@ -95,8 +95,7 @@ static int cmd_info(char *args) {
   if (strcmp(opt, "r") == 0) {
     isa_reg_display();
   } else if (strcmp(opt, "w") == 0) {
-    printf("Todo.\n");
-    // printf("info w\n");
+    printWatchpoints();
   } else {
     ErrUnknownOptions(opt);
     return 0;
@@ -113,7 +112,12 @@ static int cmd_p(char* args) {
   bool success = false;
   word_t result = expr(args, &success);
 
-  printf("%d\n", result);
+  if (!success) {
+    ErrInvalidParameters();
+    return 0;
+  }
+
+  printf("%u\n", result);
 
   return 0;
 }
@@ -143,6 +147,51 @@ static int cmd_x(char *args) {
   return 0;
 }
 
+static int cmd_w(char *args) {
+  if (args == NULL) {
+    ErrInvalidParameters();
+    return 0;
+  }
+
+  bool success = false;
+  word_t result = expr(args, &success);
+
+  if (!success) {
+    ErrInvalidParameters();
+    return 0;
+  }
+
+  WP *newPoint = new_wp();
+  newPoint -> currentValue = result;
+  strcpy(newPoint -> expr, args);
+
+  return 0;
+}
+
+static int cmd_d(char *args) {
+  if (args == NULL) {
+    ErrInvalidParameters();
+    return 0;
+  }
+
+  char* N = strtok(args, " ");
+  int n = 0, len = strlen(N);
+  for (int i = 0; i < len; i++) {
+    n = n * 10 + (N[i] - '0');
+  }
+
+  bool success = false;
+  free_wp(n, &success);
+
+  if (!success) {
+    printf("Watchpoint %d doesn't exist.\n", n);
+  } else {
+    printf("Delete successfully.\n");
+  }
+
+  return 0;
+}
+
 static int cmd_help(char *args);
 
 static struct {
@@ -159,6 +208,8 @@ static struct {
        info w - monitor information", cmd_info },
   { "p", "Calculate the value of expr.", cmd_p },
   { "x", "Scan memory.", cmd_x },
+  { "w", "Set a new watchpoint.", cmd_w },
+  { "d", "Delete the watchpoint N", cmd_d },
   /* TODO: Add more commands */
 
 };

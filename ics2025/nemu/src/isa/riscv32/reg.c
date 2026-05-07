@@ -34,7 +34,7 @@ void isa_reg_display() {
 
 word_t isa_reg_str2val(const char *s, bool *success) {
   *success = true;
-
+  // printf("qeee %s", s);
   int n = MUXDEF(CONFIG_RVE, 16, 32);
   for (int i = 0; i < n; i++) {
     if (strcmp(s, reg_name(i)) == 0) {
