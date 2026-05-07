@@ -67,6 +67,7 @@ static int cmd_q(char *args) {
 static int cmd_si(char *args) {
   int n = 1;
   if (args != NULL) {
+    n = 0;
     int len = strlen(args);
     for (int i = 0; i < len; i++) {
       n = n * 10 + (args[i] - '0');
