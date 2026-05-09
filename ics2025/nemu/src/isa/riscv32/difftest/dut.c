@@ -18,7 +18,21 @@
 #include "../local-include/reg.h"
 
 bool isa_difftest_checkregs(CPU_state *ref_r, vaddr_t pc) {
-  return false;
+  for (int i = 0; i < 32; i++) {
+    word_t nemuValue = gpr(i);
+    word_t REFValue = ref_r -> gpr[i];
+    if (nemuValue != REFValue) {
+      printf("RegDiff at idx %d\n.", i);
+      return false;
+    }
+  }
+
+  if (cpu.pc != ref_r -> pc) {
+    printf("PC diff at 0x%8x.\n", pc);
+    return false;
+  }
+
+  return true;
 }
 
 void isa_difftest_attach() {

@@ -31,6 +31,9 @@ int logCnt = 0;
 
 void initFtrace(char *fileName) {
   FILE *fp = fopen(fileName, "rb");
+  if (!fp) {
+    return ;
+  }
   Assert(fp, "Can not open '%s'", fileName); 
 
   Elf32_Ehdr header;
