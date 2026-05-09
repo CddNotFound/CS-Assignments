@@ -73,5 +73,10 @@ uint64_t get_time();
     log_write(__VA_ARGS__); \
   } while (0)
 
+// ----------- ftrace -----------
+
+void initFtrace(char *fileName);
+void callFunction(const int addr, const int instAddr);
+void retFunction(const int addr);
 
 #endif

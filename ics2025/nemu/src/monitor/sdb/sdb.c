@@ -108,6 +108,7 @@ static int cmd_info(char *args) {
 static int cmd_p(char* args) {
   if (args == NULL) {
     ErrInvalidParameters();
+    return 0;
   }
 
   bool success = false;
@@ -126,6 +127,7 @@ static int cmd_p(char* args) {
 static int cmd_x(char *args) {
   if (args == NULL) {
     ErrInvalidParameters();
+    return 0;
   }
 
   char* nStr = strtok(args, " ");
