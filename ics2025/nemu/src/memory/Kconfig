@@ -31,4 +31,12 @@ config MEM_RANDOM
   help
     This may help to find undefined behaviors.
 
+config MTRACE_START
+  hex "start position of memory for mtrace"
+  default 0x80008000
+
+config MTRACE_END
+  hex "end positon of memory for mtrace"
+  default 0x8fffffff
+
 endmenu #MEMORY
