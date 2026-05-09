@@ -33,12 +33,31 @@ static bool g_print_step = false;
 
 void device_update();
 
+static char iringBuf[32][128];
+static int head = 0, tail = 31;
+static int iringBufNum = 0;
+const int iringBufMaxLen = 32;
+
+
 static void trace_and_difftest(Decode *_this, vaddr_t dnpc) {
 #ifdef CONFIG_ITRACE_COND
   if (ITRACE_COND) { log_write("%s\n", _this->logbuf); }
 #endif
   if (g_print_step) { IFDEF(CONFIG_ITRACE, puts(_this->logbuf)); }
   IFDEF(CONFIG_DIFFTEST, difftest_step(_this->pc, dnpc));
+
+#ifdef CONFIG_ITRACE
+  #ifdef CONFIG_IRINGBUF
+    tail = (tail + 1) % iringBufMaxLen;
+    sprintf(iringBuf[tail], "%s", _this -> logbuf);
+  
+    iringBufNum += 1;
+    if (iringBufNum > iringBufMaxLen) {
+      head = (head + 1) % iringBufMaxLen;
+      iringBufNum = iringBufMaxLen;
+    }
+  #endif
+#endif
 
 #ifdef CONFIG_WATCHPOINT
   WP *cur = getHead();
@@ -61,6 +80,20 @@ static void trace_and_difftest(Decode *_this, vaddr_t dnpc) {
   }
 #endif
 
+#ifdef CONFIG_IRINGBUF
+  if (nemu_state.state == NEMU_ABORT && iringBufNum) {
+    log_write("\n");
+    log_write("The last %d executed instructions:\n", iringBufNum);
+
+    int cur = head;
+    while (1) {
+      log_write("%s\n", iringBuf[cur]);
+      
+      if (cur == tail) { break; }
+      cur = (cur + 1) % iringBufMaxLen;
+    }
+  }
+#endif
 }
 
 static void exec_once(Decode *s, vaddr_t pc) {
