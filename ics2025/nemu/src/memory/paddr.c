@@ -53,7 +53,7 @@ void init_mem() {
 word_t paddr_read(paddr_t addr, int len) {
 #ifdef CONFIG_MTRACE
   if (CONFIG_MTRACE_START <= addr && addr <= CONFIG_MTRACE_END) {
-    Log("Read memory at addr: %x", addr);
+    Log("Read memory at addr: 0x%8x", addr);
   }
 #endif
 
@@ -66,7 +66,7 @@ word_t paddr_read(paddr_t addr, int len) {
 void paddr_write(paddr_t addr, int len, word_t data) {
 #ifdef CONFIG_MTRACE
   if (CONFIG_MTRACE_START <= addr && addr <= CONFIG_MTRACE_END) {
-    Log("Write memory at addr: %x", addr);
+    Log("Write memory at addr: 0x%8x", addr);
   }
 #endif
 

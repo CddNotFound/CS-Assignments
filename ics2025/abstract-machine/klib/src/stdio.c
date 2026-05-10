@@ -5,14 +5,6 @@
 
 #if !defined(__ISA_NATIVE__) || defined(__NATIVE_USE_KLIB__)
 
-int printf(const char *fmt, ...) {
-  panic("Not implemented");
-}
-
-int vsprintf(char *out, const char *fmt, va_list ap) {
-  panic("Not implemented");
-}
-
 static char * putStr(char *out, const char* s) {
   while (*s) {
     *out++ = *s++;
@@ -24,6 +16,14 @@ static char * putChar(char *out, const char s) {
   return out;
 }
 static char * putInt(char *out, int d) {
+  if (!d) {
+    *out++ = '0';
+    return out;
+  }
+
+  if (d < 0) {
+    *out++ = '-';
+  }
   char buf[16];
   int cnt = 0;
   while (d) {
@@ -39,10 +39,8 @@ static char * putInt(char *out, int d) {
   return out;
 }
 
-int sprintf(char *out, const char *fmt, ...) {
-  va_list ap;
-
-  va_start(ap, fmt);
+int vsprintf(char *out, const char *fmt, va_list ap) {
+  char *start = out;
   while (*fmt) {
     if (*fmt != '%') {
       *out++ = *fmt++;
@@ -59,11 +57,36 @@ int sprintf(char *out, const char *fmt, ...) {
       default: break;
     }
   }
-  va_end(ap);
 
   *out = '\0';
 
-  return 0;
+  return out - start;
+}
+
+int printf(const char *fmt, ...) {
+  char buf[4096];
+
+  va_list ap;
+
+  va_start(ap, fmt);
+  int ret = vsprintf(buf, fmt, ap);
+  va_end(ap);
+
+  for (char *ch = buf; *ch; ch++) {
+    putch(*ch);
+  }
+
+  return ret;
+}
+
+int sprintf(char *out, const char *fmt, ...) {
+  va_list ap;
+
+  va_start(ap, fmt);
+  int ret = vsprintf(out, fmt, ap);
+  va_end(ap);
+
+  return ret;
 }
 
 int snprintf(char *out, size_t n, const char *fmt, ...) {

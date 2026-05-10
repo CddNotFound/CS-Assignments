@@ -81,8 +81,7 @@ void initFtrace(char *fileName) {
       strcpy(symbolTable[j].name, name);
       symbolTable[j].addr = sym->st_value;
       symbolTable[j].size = sym->st_size;
-      printf("%s: %u %u\n", name, sym->st_value, sym->st_size);
-    //   strcpy(symbolTable[j].type, sym->st_info);
+      // printf("%s: %u %u\n", name, sym->st_value, sym->st_size);
 
     }
 
@@ -100,7 +99,7 @@ void callFunction(const int addr, const int instAddr) {
     // }
 
     int startAddr = symbolTable[i].addr;
-    int symbolSize =symbolTable[i].size;
+    int symbolSize = symbolTable[i].size;
     if (startAddr <= addr && addr < startAddr + symbolSize) {
     //   int cur = currentStage;
     //   strcpy(functionStack[cur].funcName, symbolTable[i].name);
