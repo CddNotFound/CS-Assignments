@@ -7,8 +7,10 @@ void __am_timer_init() {
 #include<stdio.h>
 
 void __am_timer_uptime(AM_TIMER_UPTIME_T *uptime) {
-  uint64_t time = inl(RTC_ADDR);
+  uint64_t time = 0;
   time |= (uint64_t)inl(RTC_ADDR + 4) << 32;
+  time |= inl(RTC_ADDR);
+
   uptime->us = time;
 }
 

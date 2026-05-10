@@ -33,10 +33,12 @@ static bool g_print_step = false;
 
 void device_update();
 
+#ifdef CONFIG_IRINGBUF
 static char iringBuf[32][128];
 static int head = 0, tail = 31;
 static int iringBufNum = 0;
 const int iringBufMaxLen = 32;
+#endif
 
 
 static void trace_and_difftest(Decode *_this, vaddr_t dnpc) {

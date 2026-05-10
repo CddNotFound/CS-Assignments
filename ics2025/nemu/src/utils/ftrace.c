@@ -29,7 +29,10 @@ int currentStage = 0;
 char ftraceLog[65536];
 int logCnt = 0;
 
+#endif
+
 void initFtrace(char *fileName) {
+#ifdef CONFIG_FTRACE
   FILE *fp = fopen(fileName, "rb");
   if (!fp) {
     return ;
@@ -90,9 +93,11 @@ void initFtrace(char *fileName) {
     free(shdrs);
     fclose(fp);
   }
+#endif
 }
 
 void callFunction(const int addr, const int instAddr) {
+#ifdef CONFIG_FTRACE
   for (int i = 0; i < symbolNum; i++) {
     // if (strcmp(symbolTable[i].type, "FUNC") != 0) {
     //   continue;
@@ -124,9 +129,13 @@ void callFunction(const int addr, const int instAddr) {
   }
 
   printf("???: addr is not in a function.");
+
+#endif
 }
 
 void retFunction(const int addr) {
+#ifdef CONFIG_FTRACE
+
   --currentStage;
   for (int i = 0; i < symbolNum; i++) {
     // if (strcmp(symbolTable[i].type, "FUNC") != 0) {
@@ -153,5 +162,5 @@ void retFunction(const int addr) {
       return ;
     }
   }
+  #endif
 }
-#endif
