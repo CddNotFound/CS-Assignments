@@ -15,25 +15,36 @@ static char * putChar(char *out, const char s) {
   *out++ = s;
   return out;
 }
-static char * putInt(char *out, int d) {
-  if (!d) {
-    *out++ = '0';
-    return out;
-  }
-
+static char * putInt(char *out, int len, int d) {
   if (d < 0) {
     *out++ = '-';
   }
-  char buf[16];
+
+  char buf[128];
   int cnt = 0;
+  if (!d) {
+    cnt = 1;
+    buf[1] = '0';
+  }
   while (d) {
     buf[++cnt] = (char)(d % 10 + 48);
     d /= 10;
   }
 
+  if (!len) { len = cnt; }
+
+  if (cnt <= len) {
+    for (int i = 0; i < len - cnt; i++) {
+      *out++ = '0';
+    }
+  }
+
   while (cnt) {
     *out++ = buf[cnt];
     cnt -= 1;
+
+    len -= 1;
+    if (len <= 0) { break; }
   }
 
   return out;
@@ -49,9 +60,15 @@ int vsprintf(char *out, const char *fmt, va_list ap) {
 
     fmt++;
 
+    int setLen = 0;
+    while (*fmt >= '0' && *fmt <= '9') {
+      setLen = setLen * 10 + (*fmt - '0');
+      fmt++;
+    }
+
     switch (*fmt++) {
       case 's': out = putStr(out, va_arg(ap, char *)); break;
-      case 'd': out = putInt(out, va_arg(ap, int)); break;
+      case 'd': out = putInt(out, setLen, va_arg(ap, int)); break;
       case 'c': out = putChar(out, (char)va_arg(ap, int)); break;
       case '%': *out++ = '%'; break;
       default: break;

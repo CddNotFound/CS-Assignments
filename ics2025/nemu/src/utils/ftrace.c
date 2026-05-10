@@ -26,7 +26,7 @@ int symbolNum = 0;
 // FtraceStack functionStack[65536];
 int currentStage = 0;
 
-char ftraceLog[65536][128];
+char ftraceLog[65536];
 int logCnt = 0;
 
 void initFtrace(char *fileName) {
@@ -105,7 +105,7 @@ void callFunction(const int addr, const int instAddr) {
     //   strcpy(functionStack[cur].funcName, symbolTable[i].name);
     //   functionStack[cur].funcAddr = startAddr;
 
-      char *p = ftraceLog[logCnt];
+      char *p = ftraceLog;
       sprintf(p, "0x%8x: ", instAddr);
       p += 12;
       for (int j = 0; j < currentStage; j++) {
@@ -114,7 +114,7 @@ void callFunction(const int addr, const int instAddr) {
       }
       sprintf(p, "call [%s@0x%8x]", symbolTable[i].name, startAddr);
 
-      log_write("%s\n", ftraceLog[logCnt]);
+      log_write("%s\n", ftraceLog);
 
       logCnt += 1;
       currentStage += 1;
@@ -138,7 +138,7 @@ void retFunction(const int addr) {
     if (startAddr <= addr && addr < startAddr + symbolSize) {
     //   int cur = currentStage;
 
-      char *p = ftraceLog[logCnt];
+      char *p = ftraceLog;
       sprintf(p, "0x%8x: ", addr);
       p += 12;
       for (int j = 0; j < currentStage; j++) {
@@ -147,7 +147,7 @@ void retFunction(const int addr) {
       }
       sprintf(p, "ret [%s]", symbolTable[i].name);
 
-      log_write("%s\n", ftraceLog[logCnt]);
+      log_write("%s\n", ftraceLog);
 
       logCnt += 1;
       return ;
