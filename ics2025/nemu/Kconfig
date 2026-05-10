@@ -168,6 +168,10 @@ config FTRACE
   bool "Enable function call trace"
   default y
 
+config DTRACE
+  bool "Enable device trace"
+  default y
+
 config DIFFTEST
   depends on TARGET_NATIVE_ELF
   bool "Enable differential testing"
