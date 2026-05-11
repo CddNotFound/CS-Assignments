@@ -29,8 +29,51 @@ enum {
 
 static uint8_t *sbuf = NULL;
 static uint32_t *audio_base = NULL;
+static uint32_t bufOffset = 0;
+
+static bool audioInit = false;
+
+void audioPlay(void *userdata, uint8_t * stream, int len) {
+  int readCnt = 0;
+  char *dataBuf = sbuf;
+  
+  while (readCnt < min(len, audio_base[reg_count])) {
+    uint8_t data = *(dataBuf + bufOffset);
+    *(stream + readCnt) = data;
+    
+    readCnt += 1;
+    bufOffset = (bufOffset + 1) % audio_base[reg_sbuf_size];
+  }
+  
+  if (len > readCnt) {
+    memset(stream + readCnt, 0, len - readCnt);
+  }
+  
+  audio_base[reg_count] -= readCnt;
+}
 
 static void audio_io_handler(uint32_t offset, int len, bool is_write) {
+  if (!is_write) {
+    return ;
+  }
+
+  int reg = offset / sizeof(uint32_t);
+  if (reg == reg_init && !audioInit && audio_base[reg_init]) {
+    SDL_AudioSpec s = {};
+
+    s.format = AUDIO_S16SYS;
+    s.userdata = NULL;
+    s.freq = audio_base[reg_freq];
+    s.channels = audio_base[reg_channels];
+    s.samples = audio_base[reg_samples];
+    s.callback = audioPlay;
+    s.userdata = sbuf;
+    SDL_InitSubSystem(SDL_INIT_AUDIO);
+    SDL_OpenAudio(&s, NULL);
+    SDL_PauseAudio(0);
+
+    audioInit = true;
+  }
 }
 
 void init_audio() {
@@ -44,4 +87,7 @@ void init_audio() {
 
   sbuf = (uint8_t *)new_space(CONFIG_SB_SIZE);
   add_mmio_map("audio-sbuf", CONFIG_SB_ADDR, sbuf, CONFIG_SB_SIZE, NULL);
+
+  audio_base[reg_sbuf_size] = CONFIG_SB_SIZE;
+  audio_base[reg_count] = 0;
 }
