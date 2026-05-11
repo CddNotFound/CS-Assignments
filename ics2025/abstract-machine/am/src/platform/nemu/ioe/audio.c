@@ -19,8 +19,6 @@ void __am_audio_config(AM_AUDIO_CONFIG_T *cfg) {
 }
 
 void __am_audio_ctrl(AM_AUDIO_CTRL_T *ctrl) {
-  // outl(AUDIO_FREQ_ADDR, AUDIO_S16SYS);
-  // s.format = AUDIO_S16SYS;
   outl(AUDIO_FREQ_ADDR, ctrl->freq);
   outl(AUDIO_CHANNELS_ADDR, ctrl->channels);
   outl(AUDIO_SAMPLES_ADDR, ctrl->samples);
@@ -43,17 +41,24 @@ void __am_audio_play(AM_AUDIO_PLAY_T *ctl) {
 
     if (restSize <= 0) { continue; }
 
-    int n = min(len, restSize);
+    int n = len > restSize ? restSize : len;
+
+    uint8_t *sbuf = (uint8_t*)(uintptr_t*)AUDIO_SBUF_ADDR;
     for (int i = 0; i < n; i++) {
       char data = *bufStart;
-      outb(AUDIO_SBUF_ADDR + idx, data);
+      sbuf[idx] = data;
+      // outb(AUDIO_SBUF_ADDR + idx, data);
       
       idx = (idx + 1) % bufSize;
       bufStart += 1;
     }
-
-    count += n;
+    
+    // outl(AUDIO_WRITE_LCOK, 1);
+    // count = inl(AUDIO_COUNT_ADDR);
+    // count += n;
+    outl(AUDIO_COUNT_ADDR, inl(AUDIO_COUNT_ADDR) + n);
     len -= n;
-    outl(AUDIO_COUNT_ADDR, count);
+
+    // outl(AUDIO_WRITE_LCOK, 0);
   }
 }

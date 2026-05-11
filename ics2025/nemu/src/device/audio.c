@@ -24,6 +24,7 @@ enum {
   reg_sbuf_size,
   reg_init,
   reg_count,
+  // reg_add_count,
   nr_reg
 };
 
@@ -35,9 +36,10 @@ static bool audioInit = false;
 
 void audioPlay(void *userdata, uint8_t * stream, int len) {
   int readCnt = 0;
-  char *dataBuf = sbuf;
+  uint8_t *dataBuf = sbuf;
   
-  while (readCnt < min(len, audio_base[reg_count])) {
+  int readSize = len < audio_base[reg_count] ? len : audio_base[reg_count];
+  while (readCnt < readSize) {
     uint8_t data = *(dataBuf + bufOffset);
     *(stream + readCnt) = data;
     
@@ -74,6 +76,11 @@ static void audio_io_handler(uint32_t offset, int len, bool is_write) {
 
     audioInit = true;
   }
+
+  // if (reg == reg_add_count) {
+  //   audio_base[reg_count] += audio_base[reg_add_count];
+  //   audio_base[reg_add_count] = 0;
+  // }
 }
 
 void init_audio() {
@@ -90,4 +97,5 @@ void init_audio() {
 
   audio_base[reg_sbuf_size] = CONFIG_SB_SIZE;
   audio_base[reg_count] = 0;
+  // audio_base[reg_add_count] = 0;
 }
