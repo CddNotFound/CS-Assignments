@@ -23,12 +23,21 @@ const char *regs[] = {
   "s8", "s9", "s10", "s11", "t3", "t4", "t5", "t6"
 };
 
+const char *csrRegs[] = {
+  "mstatus", "mtdev", "mpec", "mcause"
+};
+
 void isa_reg_display() {
   int n = MUXDEF(CONFIG_RVE, 16, 32);
 
   for (int i = 0; i < n; i++) {
     word_t regVal = gpr(i);
-      printf("%-4s: %u\n", regs[i], regVal);
+    printf("%-4s: %u\n", regs[i], regVal);
+  }
+
+  for (int i = 0; i < 4; i++) {
+    word_t regVal = cpu.csr[i];
+    printf("%-8s: %u\n", csrRegs[i], regVal);
   }
 }
 
