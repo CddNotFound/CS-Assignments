@@ -26,7 +26,7 @@ static inline int check_reg_idx(int idx) {
 enum {
   MSTATUS,
   MTVEC, 
-  MPEC,
+  MEPC,
   MCAUSE
 };
 
@@ -34,7 +34,7 @@ static inline int getCsrIdx(int crs) {
   switch (crs) {
     case 0x300: return MSTATUS;
     case 0x305: return MTVEC;
-    case 0x341: return MPEC;
+    case 0x341: return MEPC;
     case 0x342: return MCAUSE;
     default: return -1;
   }
