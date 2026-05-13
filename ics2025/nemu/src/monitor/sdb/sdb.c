@@ -67,6 +67,7 @@ static int cmd_q(char *args) {
 static int cmd_si(char *args) {
   int n = 1;
   if (args != NULL) {
+    n = 0;
     int len = strlen(args);
     for (int i = 0; i < len; i++) {
       n = n * 10 + (args[i] - '0');
@@ -107,6 +108,7 @@ static int cmd_info(char *args) {
 static int cmd_p(char* args) {
   if (args == NULL) {
     ErrInvalidParameters();
+    return 0;
   }
 
   bool success = false;
@@ -125,6 +127,7 @@ static int cmd_p(char* args) {
 static int cmd_x(char *args) {
   if (args == NULL) {
     ErrInvalidParameters();
+    return 0;
   }
 
   char* nStr = strtok(args, " ");
