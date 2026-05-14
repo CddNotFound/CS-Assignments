@@ -70,8 +70,19 @@ int _write(int fd, void *buf, size_t count) {
   return ret;
 }
 
+extern int  _end;
+static uint32_t programBreak = 0;
+
 void *_sbrk(intptr_t increment) {
-  return (void *)-1;
+  if (programBreak == 0) {
+    programBreak = (uint32_t)&_end;
+  }
+
+  uint32_t cur = programBreak;
+  int ret = (int)_syscall_(SYS_brk, programBreak + increment, 0, 0);
+  if (ret == 0) { programBreak += increment; }
+
+  return (void *)cur;
 }
 
 int _read(int fd, void *buf, size_t count) {
