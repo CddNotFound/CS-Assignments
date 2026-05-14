@@ -1,4 +1,5 @@
 #include <fs.h>
+#include <proc.h>
 
 typedef size_t (*ReadFn) (void *buf, size_t offset, size_t len);
 typedef size_t (*WriteFn) (const void *buf, size_t offset, size_t len);
@@ -7,9 +8,12 @@ typedef struct {
   char *name;
   size_t size;
   size_t disk_offset;
+  uint32_t openOffset;
   ReadFn read;
   WriteFn write;
 } Finfo;
+
+const size_t fileNum = 24;
 
 enum {FD_STDIN, FD_STDOUT, FD_STDERR, FD_FB};
 
@@ -23,14 +27,82 @@ size_t invalid_write(const void *buf, size_t offset, size_t len) {
   return 0;
 }
 
+size_t valid_write(const void *buf, size_t offset, size_t len) {
+  char *data = (char *)buf;
+  for (int i = 0; i < len; i++) {
+    putch(*(data + i));
+  }
+
+  return len;
+}
+
 /* This is the information about all files in disk. */
 static Finfo file_table[] __attribute__((used)) = {
-  [FD_STDIN]  = {"stdin", 0, 0, invalid_read, invalid_write},
-  [FD_STDOUT] = {"stdout", 0, 0, invalid_read, invalid_write},
-  [FD_STDERR] = {"stderr", 0, 0, invalid_read, invalid_write},
+  [FD_STDIN]  = {"stdin", 0, 0, 0, invalid_read, invalid_write},
+  [FD_STDOUT] = {"stdout", 0, 0, 0, invalid_read, valid_write},
+  [FD_STDERR] = {"stderr", 0, 0, 0, invalid_read, valid_write},
 #include "files.h"
 };
 
 void init_fs() {
   // TODO: initialize the size of /dev/fb
+
+  for (int i = 0; i < fileNum; i++) {
+    file_table[i].openOffset = 0;
+  }
+}
+
+
+size_t fs_lseek(int fd, size_t offset, int whence) {
+  switch (whence) {
+    case SEEK_SET: file_table[fd].openOffset = offset; break;
+    case SEEK_CUR: file_table[fd].openOffset += offset; break;
+    case SEEK_END: file_table[fd].openOffset = file_table[fd].size + offset; break;
+    default : panic("Unsupported lseek.");
+  }
+
+  return file_table[fd].openOffset;
+}
+
+int fs_open(const char *pathname, int flags, int mode) {
+  for (int i = 0; i < fileNum; i++) {
+    if (strcmp(file_table[i].name, pathname)) { continue; }
+
+    return i;
+  }
+
+  panic("File not found.");
+
+  return -1;
+}
+
+size_t fs_read(int fd, void *buf, size_t len) {
+  int openOffset = file_table[fd].openOffset;
+  int fileOffset = file_table[fd].disk_offset;
+
+  char *data = buf;
+  int ret = ramdisk_read(data, fileOffset + openOffset, len);
+  fs_lseek(fd, len, 1);
+
+  return ret;
+}
+
+size_t fs_write(int fd, const void *buf, size_t len) {
+  if (fd == 1 || fd == 2) {
+    return file_table[fd].write(buf, 0, len);
+  }
+
+  int openOffset = file_table[fd].openOffset;
+  int fileOffset = file_table[fd].disk_offset;
+
+  int ret = ramdisk_write(buf, fileOffset + openOffset, len);
+  fs_lseek(fd, len, 1);
+
+  return ret;
+}
+
+int fs_close(int fd) {
+  file_table[fd].openOffset = 0;
+
+  return 0;
 }
