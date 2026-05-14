@@ -2,6 +2,7 @@
 
 static Context* do_event(Event e, Context* c) {
   switch (e.event) {
+    case 1: Log("Event Id = 1: Yiled"); break;
     default: panic("Unhandled event ID = %d", e.event);
   }
 
