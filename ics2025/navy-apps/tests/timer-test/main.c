@@ -1,22 +1,14 @@
 #include <stdio.h>
 #include <assert.h>
-#include <sys/_timeval.h>
-#include <sys/time.h>
-
-// typedef struct {
-//   uint32_t tv_sec;
-//   uint32_t tv_usec;
-// }TimeVal;
+#include <NDL.h>
 
 int main() {
-  struct timeval tv;
-  gettimeofday(&tv, NULL);
-
-  int lstTime = tv.tv_sec * 1000000 + tv.tv_usec;
+  NDL_Init(0);
+  
+  int lstTime = NDL_GetTicks();
 
   while (1) {
-    gettimeofday(&tv, NULL);
-    int curTime = tv.tv_sec * 1000000 + tv.tv_usec;
+    int curTime = NDL_GetTicks();
 
     if (curTime > lstTime + 500000) {
       printf("Times passed 0.5 second!\n");
@@ -24,6 +16,8 @@ int main() {
       lstTime += 500000;
     }
   }
+
+  NDL_Quit();
 
   return 0;
 }

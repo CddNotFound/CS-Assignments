@@ -13,9 +13,7 @@ typedef struct {
   WriteFn write;
 } Finfo;
 
-const size_t fileNum = 25;
-
-enum {FD_STDIN, FD_STDOUT, FD_STDERR, FD_FB};
+enum {FD_STDIN, FD_STDOUT, FD_STDERR, FD_EVENT, FD_FB};
 
 size_t invalid_read(void *buf, size_t offset, size_t len) {
   panic("should not reach here");
@@ -32,8 +30,11 @@ static Finfo file_table[] __attribute__((used)) = {
   [FD_STDIN]  = {"stdin", 0, 0, 0, invalid_read, invalid_write},
   [FD_STDOUT] = {"stdout", 0, 0, 0, invalid_read, serial_write},
   [FD_STDERR] = {"stderr", 0, 0, 0, invalid_read, serial_write},
+  [FD_EVENT] =  {"/dev/events", 0, 0, 0, events_read, invalid_write},
 #include "files.h"
 };
+
+const size_t fileNum = LENGTH(file_table);
 
 void init_fs() {
   // TODO: initialize the size of /dev/fb
@@ -68,6 +69,10 @@ int fs_open(const char *pathname, int flags, int mode) {
 }
 
 size_t fs_read(int fd, void *buf, size_t len) {
+  if (file_table[fd].read != NULL) {
+    return file_table[fd].read(buf, 0, len);
+  }
+
   int openOffset = file_table[fd].openOffset;
   int fileOffset = file_table[fd].disk_offset;
 
