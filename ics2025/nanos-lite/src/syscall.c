@@ -25,6 +25,11 @@ enum {
   GETTIMEOFDAY,
 };
 
+typedef struct {
+  uint32_t tv_sec;
+  uint32_t tv_usec;
+}TimeVal;
+
 static void SYS_Exit(Context *c) {
 #ifdef CONFIG_STRACE
   Log("System Call: exit.\n");
@@ -121,6 +126,20 @@ static void SYS_Lseek(Context *c) {
   c->GPRx = ret;
 }
 
+static void SYS_Gettimeofday(Context *c) {
+#ifdef CONFIG_STRACE
+  Log("System Call: get time of day.\n");
+#endif  
+  TimeVal *tv = (TimeVal *)c->GPR2;
+  
+  uint32_t us = io_read(AM_TIMER_UPTIME).us;
+  
+  tv->tv_sec = us / 1000000;
+  tv->tv_usec = us % 1000000;
+
+  c -> GPRx = 0;
+}
+
 void do_syscall(Context *c) {
   uintptr_t a[4];
   a[0] = c->GPR1;
@@ -137,6 +156,7 @@ void do_syscall(Context *c) {
     case CLOSE: SYS_Close(c); break;
     case OPEN : SYS_Open(c);  break;
     case LSEEK: SYS_Lseek(c); break;
+    case GETTIMEOFDAY: SYS_Gettimeofday(c); break;
     default: panic("Unhandled syscall ID = %d", a[0]);
   }
 }
