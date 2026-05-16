@@ -34,8 +34,8 @@ void __am_gpu_fbdraw(AM_GPU_FBDRAW_T *ctl) {
       int posX = ctl->x + i;
       int posY = ctl->y + j;
       if (posX < 0 || posX >= maxW || posY < 0 || posY >= maxH) { continue; }
-      uint32_t addr = posX * maxH + posY;
-      fb[addr] = pixels[i * ctl->h + j];
+      uint32_t addr = posY * maxW + posX;
+      fb[addr] = pixels[j * ctl->w + i];
     }
   }
 
