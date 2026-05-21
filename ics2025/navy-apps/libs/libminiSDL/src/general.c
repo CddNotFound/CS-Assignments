@@ -1,6 +1,6 @@
 #include <NDL.h>
 
-extern static uint32_t startTime;
+extern uint32_t startTime;
 
 int SDL_Init(uint32_t flags) {
   int ret = NDL_Init(flags);

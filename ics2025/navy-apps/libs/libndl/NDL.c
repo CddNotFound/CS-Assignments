@@ -79,6 +79,8 @@ void NDL_DrawRect(uint32_t *pixels, int x, int y, int w, int h) {
   }
   assert(fbdev != -1);
 
+  // printf("[DNL_DrawRect]:\nposition: %d, %d\n, RectSize: %d, %d\n", x, y, w, h);
+
   for (int i = 0; i < h; i++) {
     int offset = sizeof(uint32_t) * ((y + i) * screen_w + x);
     int length = sizeof(uint32_t) * w;
@@ -86,7 +88,7 @@ void NDL_DrawRect(uint32_t *pixels, int x, int y, int w, int h) {
     write(fbdev, pixels + (w * i), length);
   }
 
-  close(fbdev);
+  // close(fbdev);
 }
 
 void NDL_OpenAudio(int freq, int channels, int samples) {

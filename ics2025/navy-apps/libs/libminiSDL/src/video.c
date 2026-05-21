@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 void SDL_BlitSurface(SDL_Surface *src, SDL_Rect *srcrect, SDL_Surface *dst, SDL_Rect *dstrect) {
   assert(dst && src);
@@ -17,14 +18,20 @@ void SDL_BlitSurface(SDL_Surface *src, SDL_Rect *srcrect, SDL_Surface *dst, SDL_
   int w = srcrect ? srcrect->w : dst->w;
   int h = srcrect ? srcrect->h : dst->h;
 
-  char *sp = src->pixels + sy * src->pitch + sx * bpp;
-  char *dp = dst->pixels + dy * dst->pitch + dx * bpp;
+  // printf("[SDL_BlitSurface]\n");
+  // printf("Pos: %d, %d\n", sx, sy);
+  // printf("Size: %d, %d\n", w, h);
+  // printf("bpp = %d\n", bpp);
+
   for (int i = 0; i < h; i++) {
-    memmove(*sp + i * src->pitch, *dp + i * dst->pitch, bpp * w);
+    uint32_t *sp = (uint32_t *)(src->pixels + (sy + i) * src->pitch + sx * bpp);
+    uint32_t *dp = (uint32_t *)(dst->pixels + (dy + i) * dst->pitch + dx * bpp);
+    memmove(dp, sp, bpp * w);
   }
 }
 
 void SDL_FillRect(SDL_Surface *dst, SDL_Rect *dstrect, uint32_t color) {
+  // printf("IN SDL_FillRect\n");
   int dx = dstrect ? dstrect->x : 0;
   int dy = dstrect ? dstrect->y : 0;
   int w = dstrect ? dstrect->w : dst->w;
@@ -39,8 +46,14 @@ void SDL_FillRect(SDL_Surface *dst, SDL_Rect *dstrect, uint32_t color) {
 }
 
 void SDL_UpdateRect(SDL_Surface *s, int x, int y, int w, int h) {
+  
+  if (!w) { w = s->w; }
+  if (!h) { h = s->h; }
+  
+  // printf("[SDL_UpdateRect]\n");
+  // printf("Pos: %d, %d\n, Size: %d, %d\n", x, y, w, h);
   for (int i = 0; i < h; i++) {
-    NDL_DrawRect(s->pixels + s->pitch * (y + i) + x, x, y + i, w, 1);
+    NDL_DrawRect((uint32_t *)(s->pixels + s->pitch * (y + i)) + x, x, y + i, w, 1);
   }
 }
 
