@@ -24,8 +24,8 @@ void SDL_BlitSurface(SDL_Surface *src, SDL_Rect *srcrect, SDL_Surface *dst, SDL_
   // printf("bpp = %d\n", bpp);
 
   for (int i = 0; i < h; i++) {
-    uint32_t *sp = (uint32_t *)(src->pixels + (sy + i) * src->pitch + sx * bpp);
-    uint32_t *dp = (uint32_t *)(dst->pixels + (dy + i) * dst->pitch + dx * bpp);
+    uint8_t *sp = (uint8_t *)(src->pixels + (sy + i) * src->pitch + sx * bpp);
+    uint8_t *dp = (uint8_t *)(dst->pixels + (dy + i) * dst->pitch + dx * bpp);
     memmove(dp, sp, bpp * w);
   }
 }
@@ -39,21 +39,44 @@ void SDL_FillRect(SDL_Surface *dst, SDL_Rect *dstrect, uint32_t color) {
 
   char *dp = (char *)(dst->pixels + dy * dst->pitch + dx * bpp);
   for (int i = 0; i < h; i++) {
-    uint32_t *data = (uint32_t *)(dp + i * dst->pitch);
-    for (int j = 0; j < w; j++) { data[j] = color; }
+    if (bpp == 4) {
+      uint32_t *data = (uint32_t *)(dp + i * dst->pitch);
+      for (int j = 0; j < w; j++) { data[j] = color; }
+    } else {
+      uint8_t *data = (uint8_t *)(dp + i * dst->pitch);
+      for (int j = 0; j < w; j++) { data[j] = color;}
+    }
   }
 }
 
 void SDL_UpdateRect(SDL_Surface *s, int x, int y, int w, int h) {
   
-  if (!w) { w = s->w; }
-  if (!h) { h = s->h; }
+  if (!w && !h) {
+    w = s->w;
+    h = s->h;
+    x = y = 0;
+  }
   
   // printf("[SDL_UpdateRect]\n");
   // printf("Pos: %d, %d\n, Size: %d, %d\n", x, y, w, h);
+  int bpp = s->format->BytesPerPixel;
+  SDL_Palette *palette = s->format->palette;
+  uint32_t *data = malloc(sizeof(uint32_t) * w);
   for (int i = 0; i < h; i++) {
-    NDL_DrawRect((uint32_t *)(s->pixels + s->pitch * (y + i)) + x, x, y + i, w, 1);
+    for (int j = 0; j < w; j++) {
+      uint8_t paletteIdx = *(uint8_t *)(s->pixels + s->pitch * (y + i) + (x + j) * bpp);
+
+      if (bpp == 1) {
+        SDL_Color col = palette->colors[paletteIdx];
+        data[j] = (col.r << 16) | (col.g << 8) | col.b;
+      } else if (bpp == 4) {
+        data[j] = *(uint32_t *)(s->pixels + s->pitch * (y + i) + (x + j) * bpp);
+      }
+    }
+    NDL_DrawRect(data, x, y + i, w, 1);
+    // NDL_DrawRect((uint32_t *)(s->pixels + s->pitch * (y + i)) + x, x, y + i, w, 1);
   }
+  free(data);
 }
 
 // APIs below are already implemented.

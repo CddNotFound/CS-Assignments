@@ -4,7 +4,7 @@ extern uint32_t startTime;
 
 int SDL_Init(uint32_t flags) {
   int ret = NDL_Init(flags);
-  startTime = NDL_GetTicks() / 1000;
+  startTime = NDL_GetTicks();
   return ret;
 }
 

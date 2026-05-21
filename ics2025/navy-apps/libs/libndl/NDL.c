@@ -16,9 +16,9 @@ uint32_t NDL_GetTicks() {
   struct timeval tv;
   gettimeofday(&tv, NULL);
 
-  uint32_t ret = tv.tv_sec * 1000000 + tv.tv_usec;
+  uint32_t ret = tv.tv_sec * 1000 + tv.tv_usec / 1000;
 
-  return ret;
+  return ret * 1000;
 }
 
 int NDL_PollEvent(char *buf, int len) {
@@ -28,8 +28,6 @@ int NDL_PollEvent(char *buf, int len) {
   char event[100];
 
   int readSiz = read(evtdev, buf, len);
-
-  close(evtdev);
 
   return readSiz >= 1 ? 1 : 0;
 }
