@@ -11,12 +11,12 @@ void SDL_BlitSurface(SDL_Surface *src, SDL_Rect *srcrect, SDL_Surface *dst, SDL_
 
   int sx = srcrect ? srcrect->x : 0;
   int sy = srcrect ? srcrect->y : 0;
-  int dx = dstrect ? srcrect->x : 0;
-  int dy = dstrect ? srcrect->y : 0;
+  int dx = dstrect ? dstrect->x : 0;
+  int dy = dstrect ? dstrect->y : 0;
   int bpp = src->format->BytesPerPixel;
 
-  int w = srcrect ? srcrect->w : dst->w;
-  int h = srcrect ? srcrect->h : dst->h;
+  int w = srcrect ? srcrect->w : src->w;
+  int h = srcrect ? srcrect->h : src->h;
 
   // printf("[SDL_BlitSurface]\n");
   // printf("Pos: %d, %d\n", sx, sy);
@@ -31,7 +31,6 @@ void SDL_BlitSurface(SDL_Surface *src, SDL_Rect *srcrect, SDL_Surface *dst, SDL_
 }
 
 void SDL_FillRect(SDL_Surface *dst, SDL_Rect *dstrect, uint32_t color) {
-  // printf("IN SDL_FillRect\n");
   int dx = dstrect ? dstrect->x : 0;
   int dy = dstrect ? dstrect->y : 0;
   int w = dstrect ? dstrect->w : dst->w;
