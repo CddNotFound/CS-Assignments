@@ -24,6 +24,42 @@ size_t serial_write(const void *buf, size_t offset, size_t len) {
   return len;
 }
 
+size_t sb_write(const void *buf, size_t offset, size_t len) {
+  int written = 0;
+  char *data = (char *)buf;
+  while (written < len) {
+    int restSize = 0;
+    sbctl_read(&restSize, 0, 100);
+    int writeSize = min(restSize, len - written);
+
+    if (writeSize == 0) { continue; }
+
+    io_write(AM_AUDIO_PLAY, (Area){data + written, data + written + writeSize});
+
+    written += writeSize;
+  }
+
+  return len;
+}
+
+size_t sbctl_write(const void *buf, size_t offset, size_t len) {
+  uint32_t *data = (uint32_t *)buf;
+
+  io_write(AM_AUDIO_CTRL, data[0], data[1], data[2]);
+  return len;
+}
+
+size_t sbctl_read(void *buf, size_t offset, size_t len) {
+  AM_AUDIO_CONFIG_T cfg = io_read(AM_AUDIO_CONFIG);
+  AM_AUDIO_STATUS_T stat = io_read(AM_AUDIO_STATUS);
+
+  int free = cfg.bufsize - stat.count;
+
+  *(int *)buf = free;
+
+  return sizeof(free);
+}
+
 size_t events_read(void *buf, size_t offset, size_t len) {
   // int fd = fs_open("dev/event");
   // assert(fd >= 0);

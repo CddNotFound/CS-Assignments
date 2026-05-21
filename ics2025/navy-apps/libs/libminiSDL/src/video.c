@@ -1,4 +1,5 @@
 #include <NDL.h>
+#include <SDL.h>
 #include <sdl-video.h>
 #include <assert.h>
 #include <string.h>
@@ -20,10 +21,11 @@ void SDL_BlitSurface(SDL_Surface *src, SDL_Rect *srcrect, SDL_Surface *dst, SDL_
 
   // printf("[SDL_BlitSurface]\n");
   // printf("Pos: %d, %d\n", sx, sy);
-  // printf("Size: %d, %d\n", w, h);
+  // printf("Size: %d, %d\n", w, h);  
   // printf("bpp = %d\n", bpp);
 
   for (int i = 0; i < h; i++) {
+    CallbackHelper();
     uint8_t *sp = (uint8_t *)(src->pixels + (sy + i) * src->pitch + sx * bpp);
     uint8_t *dp = (uint8_t *)(dst->pixels + (dy + i) * dst->pitch + dx * bpp);
     memmove(dp, sp, bpp * w);
@@ -39,6 +41,7 @@ void SDL_FillRect(SDL_Surface *dst, SDL_Rect *dstrect, uint32_t color) {
 
   char *dp = (char *)(dst->pixels + dy * dst->pitch + dx * bpp);
   for (int i = 0; i < h; i++) {
+    CallbackHelper();
     if (bpp == 4) {
       uint32_t *data = (uint32_t *)(dp + i * dst->pitch);
       for (int j = 0; j < w; j++) { data[j] = color; }
@@ -63,6 +66,7 @@ void SDL_UpdateRect(SDL_Surface *s, int x, int y, int w, int h) {
   SDL_Palette *palette = s->format->palette;
   uint32_t *data = malloc(sizeof(uint32_t) * w);
   for (int i = 0; i < h; i++) {
+    CallbackHelper();
     for (int j = 0; j < w; j++) {
       uint8_t paletteIdx = *(uint8_t *)(s->pixels + s->pitch * (y + i) + (x + j) * bpp);
 

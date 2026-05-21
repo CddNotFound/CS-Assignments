@@ -17,6 +17,7 @@ int SDL_PushEvent(SDL_Event *ev) {
 }
 
 int pollSingleEvent(SDL_Event *event) {
+  CallbackHelper();
   char buf[100];
   int ret = NDL_PollEvent(buf, 100);
   if (ret == 0) { return 0; }
@@ -27,6 +28,7 @@ int pollSingleEvent(SDL_Event *event) {
   int keyNum = sizeof(keyname) / sizeof(keyname[0]);
   int keyIdx = -1;
   for (int i = 1; i < keyNum; i++) {
+    CallbackHelper();
     if (strcmp(keyname[i], keyName) == 0) {
       keyIdx = i;
       break;
@@ -44,22 +46,26 @@ int pollSingleEvent(SDL_Event *event) {
   } else {
     return 0;
   }
+  CallbackHelper();
 
   return 1;
 }
 
 int SDL_PollEvent(SDL_Event *ev) {
+  CallbackHelper();
   return pollSingleEvent(ev);
 }
 
 int SDL_WaitEvent(SDL_Event *event) {
   while (1) {
+    CallbackHelper();
     if (pollSingleEvent(event)) { break; }
   }
   return 1;
 }
 
 int SDL_PeepEvents(SDL_Event *ev, int numevents, int action, uint32_t mask) {
+  CallbackHelper();
   if (numevents <= 0 || ev == NULL) { return 0; }
 
   if (action == SDL_GETEVENT || action == SDL_PEEKEVENT) {
@@ -69,6 +75,7 @@ int SDL_PeepEvents(SDL_Event *ev, int numevents, int action, uint32_t mask) {
 }
 
 uint8_t* SDL_GetKeyState(int *numkeys) {
+  CallbackHelper();
   if (numkeys) {
     *numkeys = 256;
   }

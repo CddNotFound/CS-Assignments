@@ -107,7 +107,7 @@ int main(int argc, char *argv[]) {
 
   stream_save = malloc(SAMPLES * info.channels * sizeof(*stream_save));
   assert(stream_save);
-  printf("Playing %s(freq = %d, channels = %d)...\n", MUSIC_PATH, info.sample_rate, info.channels);
+  // printf("Playing %s(freq = %d, channels = %d)...\n", MUSIC_PATH, info.sample_rate, info.channels);
   SDL_PauseAudio(0);
 
   while (!is_end) {
@@ -121,7 +121,7 @@ int main(int argc, char *argv[]) {
       }
     }
     SDL_Delay(1000 / FPS);
-    visualize(stream_save, SAMPLES * info.channels);
+    // visualize(stream_save, SAMPLES * info.channels);
   }
 
   SDL_CloseAudio();

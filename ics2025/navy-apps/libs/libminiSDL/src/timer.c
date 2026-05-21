@@ -20,5 +20,8 @@ uint32_t SDL_GetTicks() {
 void SDL_Delay(uint32_t ms) {
   int base = NDL_GetTicks() - startTime;
   int cur = NDL_GetTicks() - startTime;
-  while (base + ms >= cur) { cur = NDL_GetTicks() - startTime; }
+  while (base + ms >= cur) { 
+    CallbackHelper();
+    cur = NDL_GetTicks() - startTime;
+  }
 }

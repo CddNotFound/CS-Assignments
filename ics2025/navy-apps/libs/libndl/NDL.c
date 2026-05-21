@@ -18,7 +18,7 @@ uint32_t NDL_GetTicks() {
 
   uint32_t ret = tv.tv_sec * 1000 + tv.tv_usec / 1000;
 
-  return ret * 1000;
+  return ret;
 }
 
 int NDL_PollEvent(char *buf, int len) {
@@ -89,18 +89,48 @@ void NDL_DrawRect(uint32_t *pixels, int x, int y, int w, int h) {
   // close(fbdev);
 }
 
+static int sbdev = -1;
+static int sbctldev = -1;
+
 void NDL_OpenAudio(int freq, int channels, int samples) {
+  int buf[3];
+  buf[0] = freq;
+  buf[1] = channels;
+  buf[2] = samples;
+
+  if (sbctldev == -1) {
+    sbctldev = open("/dev/sbctl", 1);
+  }
+
+  write(sbctldev, buf, 100);
 }
 
 void NDL_CloseAudio() {
+  close(sbdev);
+  close(sbctldev);
+  sbdev = -1;
+  sbctldev = -1;
 }
 
 int NDL_PlayAudio(void *buf, int len) {
-  return 0;
+  if (sbdev == -1) {
+    sbdev = open("/dev/sb", 0);
+  }
+
+  int ret = write(sbdev, buf, len);
+
+  return ret;
 }
 
 int NDL_QueryAudio() {
-  return 0;
+  if (sbctldev == -1) {
+    sbctldev = open("/dev/sbctl", 0);
+  }
+
+  int freeSize = 0;
+  read(sbctldev, &freeSize, 100);
+
+  return freeSize;
 }
 
 int NDL_Init(uint32_t flags) {
