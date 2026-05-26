@@ -17,6 +17,8 @@ static int audioPaused = 1;
 static void (*callback)(void *userdata, uint8_t *stream, int len);
 static void *userdata;
 
+static int calledHelper = 0;
+
 uint8_t *stream = NULL;
 
 int SDL_OpenAudio(SDL_AudioSpec *desired, SDL_AudioSpec *obtained) {
@@ -37,12 +39,19 @@ int SDL_OpenAudio(SDL_AudioSpec *desired, SDL_AudioSpec *obtained) {
   stream = malloc(sizeof(uint8_t) * callbackLen);
 
   lastCallback = NDL_GetTicks();
+  calledHelper = 0;
+
   NDL_OpenAudio(freq, channels, samples);
 
   return 0;
 }
 
+
 void CallbackHelper() {
+  if (calledHelper) { return ; }
+  
+  calledHelper += 1;
+
   // printf("Try to call!\n");
   if (!freq) {
     return ;
@@ -69,6 +78,8 @@ void CallbackHelper() {
     NDL_PlayAudio(stream, use);
   }
   // printf("Leave Call!\n");
+
+  calledHelper -= 1;
 }
 
 void SDL_CloseAudio() {
@@ -80,6 +91,8 @@ void SDL_CloseAudio() {
   free(stream);
   stream = NULL;
   callback = NULL;
+  calledHelper = 0;
+
   NDL_CloseAudio();
 
   return ;
