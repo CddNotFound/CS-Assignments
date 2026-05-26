@@ -19,6 +19,7 @@
 #include <readline/history.h>
 #include <memory/paddr.h>
 #include "sdb.h"
+#include <cpu/difftest.h>
 
 static int is_batch_mode = false;
 
@@ -195,6 +196,31 @@ static int cmd_d(char *args) {
   return 0;
 }
 
+static int cmd_attach(char *args) {
+  if (args != NULL) {
+    ErrInvalidParameters();
+    return 0;
+  }
+
+  printf("Openning difftest.\n");
+  difftestAttach();
+  printf("Difftest is on.\n");
+
+  return 0;
+}
+
+static int cmd_detach(char *args) {
+  if (args != NULL) {
+    ErrInvalidParameters();
+    return 0;
+  }
+
+  difftestDetach();
+  printf("Difftest is off.\n");
+
+  return 0;
+}
+
 static int cmd_help(char *args);
 
 static struct {
@@ -213,6 +239,8 @@ static struct {
   { "x", "Scan memory.", cmd_x },
   { "w", "Set a new watchpoint.", cmd_w },
   { "d", "Delete the watchpoint N", cmd_d },
+  { "detach", "Close difftest.", cmd_detach}, 
+  { "attach", "Open difftest.", cmd_attach},
   /* TODO: Add more commands */
 
 };

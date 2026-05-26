@@ -50,4 +50,7 @@ static inline bool difftest_check_reg(const char *name, vaddr_t pc, word_t ref, 
   return true;
 }
 
+void difftestAttach() ;
+void difftestDetach() ;
+
 #endif

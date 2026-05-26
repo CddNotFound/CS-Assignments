@@ -27,7 +27,8 @@ enum {
   MSTATUS,
   MTVEC, 
   MEPC,
-  MCAUSE
+  MCAUSE,
+  CRS_NUM
 };
 
 static inline int getCsrIdx(int crs) {
