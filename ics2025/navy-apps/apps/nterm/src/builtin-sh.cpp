@@ -23,6 +23,12 @@ static void sh_prompt() {
 }
 
 static void sh_handle_cmd(const char *cmd) {
+  char *filename = (char *)cmd;
+  int len = strlen(filename);
+  filename[len - 1] = '\0';
+
+  char *argv[] = {filename, NULL};
+  execvp(filename, argv);
 }
 
 void builtin_sh_run() {

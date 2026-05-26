@@ -27,15 +27,8 @@ void (*ref_difftest_regcpy)(void *dut, bool direction) = NULL;
 void (*ref_difftest_exec)(uint64_t n) = NULL;
 void (*ref_difftest_raise_intr)(uint64_t NO) = NULL;
 
-
-#ifdef CONFIG_DIFFTEST
-
-static bool is_skip_ref = false;
-static int skip_dut_nr_inst = 0;
-static int difftestStatus = 1;
-#define ISOPEN (difftestStatus)
-
 void difftestAttach() {
+#ifdef CONFIG_DIFFTEST
   if (difftestStatus) { return ; }
 
   ref_difftest_memcpy(PMEM_LEFT, guest_to_host(PMEM_LEFT), CONFIG_MSIZE, DIFFTEST_TO_REF);
@@ -46,11 +39,21 @@ void difftestAttach() {
   is_skip_ref = false;
   skip_dut_nr_inst = 0;
   difftestStatus = 1;
+#endif
 }
 
 void difftestDetach() {
+#ifdef CONFIG_DIFFTEST
   difftestStatus = 0;
+#endif
 }
+
+#ifdef CONFIG_DIFFTEST
+
+static bool is_skip_ref = false;
+static int skip_dut_nr_inst = 0;
+static int difftestStatus = 1;
+#define ISOPEN (difftestStatus)
 
 // this is used to let ref skip instructions which
 // can not produce consistent behavior with NEMU

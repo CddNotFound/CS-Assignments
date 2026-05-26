@@ -30,12 +30,28 @@ typedef struct {
   uint32_t tv_usec;
 }TimeVal;
 
+static void SYS_Execve(Context *c) {
+#ifdef CONFIG_STRACE
+  Log("System Call: Execve.\n");
+#endif
+  // printf("Next file: %s\n", (char *)c->GPR2);
+
+  char *filename = (char *)c->GPR2;
+  naive_uload(NULL, filename);
+
+  c -> GPRx = 0;
+}
+
 static void SYS_Exit(Context *c) {
 #ifdef CONFIG_STRACE
   Log("System Call: exit.\n");
 #endif
 
-  halt(c->GPR2);
+  // halt(c->GPR2);
+  char *filename = "/bin/nterm";
+  Context Menu = *c;
+  Menu.GPR2 = (uintptr_t)filename;
+  SYS_Execve(&Menu);
 
   c->GPRx = 0;
 }
@@ -148,15 +164,16 @@ void do_syscall(Context *c) {
   // a[3] = c->GPR4;
 
   switch (a[0]) {
-    case EXIT : SYS_Exit(c);  break;
-    case YIELD: SYS_Yield(c); break;
-    case WRITE: SYS_Write(c); break;
-    case BRK  : SYS_Brk(c);   break;
-    case READ : SYS_Read(c);  break;
-    case CLOSE: SYS_Close(c); break;
-    case OPEN : SYS_Open(c);  break;
-    case LSEEK: SYS_Lseek(c); break;
+    case EXIT        : SYS_Exit(c);  break;
+    case YIELD       : SYS_Yield(c); break;
+    case WRITE       : SYS_Write(c); break;
+    case BRK         : SYS_Brk(c);   break;
+    case READ        : SYS_Read(c);  break;
+    case CLOSE       : SYS_Close(c); break;
+    case OPEN        : SYS_Open(c);  break;
+    case LSEEK       : SYS_Lseek(c); break;
     case GETTIMEOFDAY: SYS_Gettimeofday(c); break;
+    case EXECVE      : SYS_Execve(c); break;
     default: panic("Unhandled syscall ID = %d", a[0]);
   }
 }
