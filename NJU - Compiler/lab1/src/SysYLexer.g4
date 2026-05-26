@@ -36,9 +36,37 @@ lexer grammar SysYLexer;
 // basicType : 'int' ;
 
 INT : 'int' ;
+CONST : 'const';
+VOID : 'void';
+WHILE : 'while';
+BREAK : 'break';
+CONTINUE : 'continue';
 RETURN : 'return' ;
 IF : 'if' ;
 ELSE : 'else' ; 
+PLUS : '+';
+MINUS : '-';
+MUL : '*';
+DIV : '/';
+MOD : '%';
+ASSIGN : '=';
+EQ : '==';
+NEQ : '!=';
+LT : '<';
+GT : '>';
+LE : '<=';
+GE : '>=';
+NOT : '!';
+AND : '&&';
+OR : '||';
+L_PAREN : '(';
+R_PAREN : ')';
+L_BRACE : '{';
+R_BRACE : '}';
+L_BRACKT : '[';
+R_BRACKT : ']';
+COMMA : ',';
+SEMICOLON : ';';
 
 IDENT : '_'+ WORD*
    | (LETTER)+WORD*;
@@ -50,27 +78,11 @@ IDENT : '_'+ WORD*
 //          | '0'
 //          ; 
 
-Binary : '0' ('b' | 'B') '1'[1-2]* ;
+Binary : '0' ('b' | 'B') '1'[0-1]* ;
 // Quaternary : [1-3][0-3]* ; 
 Octal : '0'[0-7]+ ;
 Decimal : [1-9]NUMBER* | '0'; 
 Hexadecimal : '0'('x' | 'X')[0-9a-fA-F]+ ; 
- 
-L_PAREN : '(' ;
-R_PAREN : ')' ;
-L_BRACE : '{' ;
-R_BRACE : '}' ;
-L_BRACKT : '[' ;
-R_BRACKT : ']' ; 
-SEMICOLON : ';' ; 
-COMMA : ',' ; 
-
-PLUS : '+' ;
-MINUS : '-' ;
-ASSIGN : '=' ;
-NOT : '!' ; 
-
-
 
 fragment LETTER : [a-zA-Z] ;
 fragment NUMBER : [0-9] ;

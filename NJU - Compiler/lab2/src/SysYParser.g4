@@ -14,6 +14,9 @@ stat : block                                              # CodeBlock
      | exp ';'                                            # Expd
      | WHILE L_PAREN cond R_PAREN stat                    # WhileLoop
      | lVal ASSIGN exp SEMICOLON                          # VarAssign
+     | BREAK ';'                                          # Break
+     | CONTINUE ';'                                       # Continue
+     | ';'                                                # Empty
      ;
 
 block : L_BRACE stat* R_BRACE ;
@@ -33,8 +36,8 @@ cond
    : exp 
    | cond (LT | GT | LE | GE) cond
    | cond (EQ | NEQ) cond 
-   | cond LOGICAL_AND cond 
-   | cond LOGICAL_OR cond 
+   | cond AND cond 
+   | cond OR cond 
    ;
 
 lVal
@@ -89,13 +92,18 @@ allType : CONST? INT | VOID;
 
 funcDecl : allType IDENT L_PAREN parameters? R_PAREN block ;
 
-parameter : INT IDENT (L_BRACKT R_BRACKT)?;
+parameter : INT IDENT
+          | INT IDENT (L_BRACKT R_BRACKT) (L_BRACKT exp R_BRACKT)*
+          ;
 parameters : parameter (COMMA parameter)* ; 
 
-varDecl : basicType IDENT (ASSIGN exp)? (COMMA IDENT (ASSIGN exp)?)* SEMICOLON
-        | basicType IDENT (L_BRACKT number R_BRACKT)+ (ASSIGN arrayAssign)? SEMICOLON
-        ;
+varDecl : basicType varDeclItem (COMMA varDeclItem)* ';';
 
-arrayAssign : arrayNumber
-            | L_BRACE arrayNumber (COMMA arrayNumber)* R_BRACE ;
-arrayNumber : L_BRACE exp (COMMA exp)* R_BRACE;
+varDeclItem : IDENT (ASSIGN (exp | arrayNumber))?
+            | IDENT (L_BRACKT exp R_BRACKT)* (ASSIGN arrayNumber)?
+            ;
+
+arrayNumber : L_BRACE (exp (COMMA exp)*)? R_BRACE
+            | L_BRACE arrayNumber R_BRACE
+            | L_BRACE arrayNumber (COMMA arrayNumber)* R_BRACE
+            ;

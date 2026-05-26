@@ -33,13 +33,13 @@ public class Main
             for (Token t : myTokens) {
                 int typeId = t.getType();
                 String type = sysYLexer.VOCABULARY.getSymbolicName(typeId);
-                if (type == "Binary" || type == "Octal" || type == "Hexadecimal" || type == "Decimal") {
+                if (type.equals("Binary") || type.equals("Octal") || type.equals("Hexadecimal") || type.equals("Decimal")) {
                     int value = 0;
-                    if (type == "Binary") {
+                    if (type.equals("Binary")) {
                         value = BinaryToDecimal(t.getText());
-                    } else if (type == "Octal") {
+                    } else if (type.equals("Octal")) {
                         value = OctalToDecimal(t.getText());
-                    } else if (type == "Hexadecimal"){
+                    } else if (type.equals("Hexadecimal")){
                         value = HexToDecimal(t.getText());
                     } else {
                         value = StringToInt(t.getText());

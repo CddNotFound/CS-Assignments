@@ -25,8 +25,8 @@ GE : '>=' ;
 NOT : '!' ; 
 BIT_AND : '&' ;
 BIT_OR : '|' ;
-LOGICAL_AND : '&&' ;
-LOGICAL_OR : '||';
+AND : '&&' ;
+OR : '||';
 COMMA : ',' ; 
 SEMICOLON : ';' ; 
 
@@ -39,7 +39,7 @@ INTEGER_CONST : Decimal
 IDENT : '_'+ WORD*
    | (LETTER)+WORD*;
 
-Binary : '0' ('b' | 'B') '1'[1-2]* ;
+Binary : '0' ('b' | 'B') '1'[0-1]* ;
 // Quaternary : [1-3][0-3]* ; 
 Octal : '0'[0-7]+ ;
 Decimal : [1-9]NUMBER* | '0'; 
@@ -61,3 +61,4 @@ WS : [ \t\n\r]+ -> channel(HIDDEN);
 DOCS_COMMENT: '/**' .*? '*/' -> skip ;
 SL_COMMENT : '//' .*? ('\n' | EOF) -> skip ;
 ML_COMMENT : '/*' .*? '*/' -> skip ; 
+

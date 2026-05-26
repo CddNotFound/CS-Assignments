@@ -1,7 +1,8 @@
-很多地方在写到之后的lab的时候会意识到写得有多麻烦/屎山，轻喷
+很多地方在写到之后的lab的时候才意识到有多麻烦/屎山，轻喷QAQ
 
-lab1: Pending.
-lab2: Pending.
+lab0: Passed.
+lab1: Passed.
+lab2: Passed.
 lab3: Pending.
 lab4: Pending.
 lab5: Pending.
