@@ -9,7 +9,7 @@ void __am_gpu_init() {
   int w = io_read(AM_GPU_CONFIG).width;
   int h = io_read(AM_GPU_CONFIG).height;
   uint32_t *fb = (uint32_t*)(uintptr_t)FB_ADDR;
-  for (i = 0; i < w * h; i++) fb[i] = i;
+  for (i = 0; i < w * h; i++) fb[i] = 0;
   outl(SYNC_ADDR, 1);
 }
 
@@ -34,8 +34,8 @@ void __am_gpu_fbdraw(AM_GPU_FBDRAW_T *ctl) {
       int posX = ctl->x + i;
       int posY = ctl->y + j;
       if (posX < 0 || posX >= maxW || posY < 0 || posY >= maxH) { continue; }
-      uint32_t addr = posX * maxH + posY;
-      fb[addr] = pixels[i * ctl->h + j];
+      uint32_t addr = posY * maxW + posX;
+      fb[addr] = pixels[j * ctl->w + i];
     }
   }
 

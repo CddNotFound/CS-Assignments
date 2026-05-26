@@ -23,7 +23,26 @@ static inline int check_reg_idx(int idx) {
   return idx;
 }
 
+enum {
+  MSTATUS,
+  MTVEC, 
+  MEPC,
+  MCAUSE,
+  CRS_NUM
+};
+
+static inline int getCsrIdx(int crs) {
+  switch (crs) {
+    case 0x300: return MSTATUS;
+    case 0x305: return MTVEC;
+    case 0x341: return MEPC;
+    case 0x342: return MCAUSE;
+    default: return -1;
+  }
+}
+
 #define gpr(idx) (cpu.gpr[check_reg_idx(idx)])
+#define csr(idx) (cpu.csr[getCsrIdx(idx)])
 
 static inline const char* reg_name(int idx) {
   extern const char* regs[];

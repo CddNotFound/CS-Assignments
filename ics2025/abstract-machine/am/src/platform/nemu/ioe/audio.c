@@ -17,8 +17,10 @@ void __am_audio_config(AM_AUDIO_CONFIG_T *cfg) {
   cfg->present = true;
   cfg->bufsize = inl(AUDIO_SBUF_SIZE_ADDR);
 }
-
+#include<stdio.h>
 void __am_audio_ctrl(AM_AUDIO_CTRL_T *ctrl) {
+  idx = 0;
+
   outl(AUDIO_FREQ_ADDR, ctrl->freq);
   outl(AUDIO_CHANNELS_ADDR, ctrl->channels);
   outl(AUDIO_SAMPLES_ADDR, ctrl->samples);
@@ -43,7 +45,9 @@ void __am_audio_play(AM_AUDIO_PLAY_T *ctl) {
 
     int n = len > restSize ? restSize : len;
 
-    uint8_t *sbuf = (uint8_t*)(uintptr_t*)AUDIO_SBUF_ADDR;
+    // if (n != len) { break; }
+
+    uint8_t *sbuf = (uint8_t*)(uintptr_t)AUDIO_SBUF_ADDR;
     for (int i = 0; i < n; i++) {
       char data = *bufStart;
       sbuf[idx] = data;

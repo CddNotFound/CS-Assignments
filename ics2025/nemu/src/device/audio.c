@@ -47,6 +47,7 @@ void audioPlay(void *userdata, uint8_t * stream, int len) {
     bufOffset = (bufOffset + 1) % audio_base[reg_sbuf_size];
   }
   
+  // printf("com:: %d, %d, totsize = %d\n", len, readCnt, audio_base[reg_sbuf_size]);
   if (len > readCnt) {
     memset(stream + readCnt, 0, len - readCnt);
   }
