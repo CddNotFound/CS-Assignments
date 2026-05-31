@@ -16,6 +16,7 @@ static const char *keyname[256] __attribute__((used)) = {
 };
 
 size_t serial_write(const void *buf, size_t offset, size_t len) {
+  yield();
   char *data = (char *)buf;
   for (int i = 0; i < len; i++) {
     putch(*(data + i));
@@ -25,6 +26,7 @@ size_t serial_write(const void *buf, size_t offset, size_t len) {
 }
 
 size_t sb_write(const void *buf, size_t offset, size_t len) {
+  yield();
   int written = 0;
   char *data = (char *)buf;
   while (written < len) {
@@ -43,6 +45,7 @@ size_t sb_write(const void *buf, size_t offset, size_t len) {
 }
 
 size_t sbctl_write(const void *buf, size_t offset, size_t len) {
+  yield();
   uint32_t *data = (uint32_t *)buf;
 
   io_write(AM_AUDIO_CTRL, data[0], data[1], data[2]);
@@ -50,6 +53,7 @@ size_t sbctl_write(const void *buf, size_t offset, size_t len) {
 }
 
 size_t sbctl_read(void *buf, size_t offset, size_t len) {
+  yield();
   AM_AUDIO_CONFIG_T cfg = io_read(AM_AUDIO_CONFIG);
   AM_AUDIO_STATUS_T stat = io_read(AM_AUDIO_STATUS);
 
@@ -61,6 +65,7 @@ size_t sbctl_read(void *buf, size_t offset, size_t len) {
 }
 
 size_t events_read(void *buf, size_t offset, size_t len) {
+  yield();
   // int fd = fs_open("dev/event");
   // assert(fd >= 0);
 
@@ -85,6 +90,7 @@ size_t events_read(void *buf, size_t offset, size_t len) {
 }
 
 size_t dispinfo_read(void *buf, size_t offset, size_t len) {
+  yield();
   AM_GPU_CONFIG_T dispInfo = io_read(AM_GPU_CONFIG);
   uint16_t width = dispInfo.width;
   uint16_t height = dispInfo.height;
@@ -97,6 +103,7 @@ size_t dispinfo_read(void *buf, size_t offset, size_t len) {
 }
 
 size_t fb_write(const void *buf, size_t offset, size_t len) {
+  yield();
   AM_GPU_CONFIG_T dispInfo = io_read(AM_GPU_CONFIG);
   uint16_t width = dispInfo.width;
   // uint16_t height = dispInfo.height;

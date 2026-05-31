@@ -26,11 +26,12 @@ void init_proc() {
 
   // load program here
 
-  context_kload(&pcb[0], hello_fun, (void *)1);
-  context_kload(&pcb[1], hello_fun, (void *)2);
+  context_kload(&pcb[0], (void *)hello_fun, (void *)114514);
+  context_uload(&pcb[1], "/bin/nplayer", (char *[]){"pal", "--skip", "message", NULL}, (char *[]){"PATH=*", "INST=r|m -rf ~/PATH", NULL});
   switch_boot_pcb();
+  yield();
 
-  naive_uload(NULL, "/bin/nterm");
+  panic("Shouldn't reach here.");
 }
 
 Context* schedule(Context *prev) {

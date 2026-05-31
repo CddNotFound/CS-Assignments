@@ -7,12 +7,15 @@ int main(int argc, char *argv[], char *envp[]);
 extern char **environ;
 void __libc_init_array() ;
 
+#include<stdio.h>
 void call_main(uintptr_t *args) {
-  char *empty[] =  {NULL };
-  environ = empty;
+  char *data = (char *)args;
+  int argc = *(int *)data;
+  char **argv = (char **)(data + sizeof(int));
+  char **envp = (char **)(data + sizeof(int) + sizeof(char *) * (argc + 1));
 
   __libc_init_array();
-
-  exit(main(0, empty, empty));
+  environ = envp;
+  exit(main(argc, argv, envp));
   assert(0);
 }

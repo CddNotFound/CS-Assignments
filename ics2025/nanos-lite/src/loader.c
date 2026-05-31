@@ -46,3 +46,48 @@ void naive_uload(PCB *pcb, const char *filename) {
   ((void(*)())entry) ();
 }
 
+void context_uload(PCB *pcb, const char *filename, char *const argv[], char *const envp[]) {
+  uintptr_t entry = loader(pcb, filename);
+  pcb->cp = ucontext(NULL, (Area){pcb->stack, pcb->stack + STACK_SIZE}, (void *)entry);
+
+  char *pointer = heap.end;
+  int argc = 0, envc = 0;
+  while (argv && argv[argc]) ++argc;
+  while (envp && envp[envc]) ++envc;
+
+  char *argvAddr[argc];
+  char *envpAddr[envc];
+
+  for (int i = 0; i < argc; i++) {
+    int len = strlen(argv[i]) + 1;
+    pointer -= len;
+    strcpy(pointer, argv[i]);
+    argvAddr[i] = pointer;
+  }
+  for (int i = 0; i < envc; i++) {
+    int len = strlen(envp[i]) + 1;
+    pointer -= len;
+    strcpy(pointer, envp[i]);
+    envpAddr[i] = pointer;
+  }
+
+  pointer = (char *)((uintptr_t)pointer & ~0x3);
+
+  pointer -= sizeof(char *);
+  *(char **)pointer = NULL;
+  for (int i = envc - 1; i >= 0; i--) {
+    pointer -= sizeof(char *);
+    *(char **)pointer = envpAddr[i];
+  }
+  pointer -= sizeof(char *);
+  *(char **)pointer = NULL;
+  for (int i = argc - 1; i >= 0; i--) {
+    pointer -= sizeof(char *);
+    *(char **)pointer = argvAddr[i];
+  }
+  
+  pointer -= sizeof(int);
+  *(int *)pointer = argc;
+
+  pcb->cp->GPRx = (uintptr_t)pointer;
+}
