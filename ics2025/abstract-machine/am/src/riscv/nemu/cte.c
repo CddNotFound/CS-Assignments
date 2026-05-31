@@ -12,12 +12,12 @@ Context* __am_irq_handle(Context *c) {
       default: ev.event = EVENT_ERROR; break;
     }
 
-    c = user_handler(ev, c);
-    assert(c != NULL);
-
     if (ev.event == EVENT_YIELD || ev.event == EVENT_SYSCALL) {
       c->mepc += 4;
     }
+
+    c = user_handler(ev, c);
+    assert(c != NULL);
   }
 
   return c;
@@ -39,6 +39,8 @@ Context *kcontext(Area kstack, void (*entry)(void *), void *arg) {
   Context *c = kstack.end - sizeof(Context);
   memset(c, 0, sizeof(Context));
   c->mepc = (uintptr_t)entry;
+  
+  c->GPR2 = (uintptr_t)arg;
 
   return c;
 }
