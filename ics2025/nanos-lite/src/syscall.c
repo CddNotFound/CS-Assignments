@@ -30,6 +30,8 @@ typedef struct {
   uint32_t tv_usec;
 }TimeVal;
 
+extern void switch_boot_pcb() ;
+
 static void SYS_Execve(Context *c) {
 #ifdef CONFIG_STRACE
   Log("System Call: Execve.\n");
@@ -37,9 +39,15 @@ static void SYS_Execve(Context *c) {
   // printf("Next file: %s\n", (char *)c->GPR2);
 
   char *filename = (char *)c->GPR2;
-  naive_uload(NULL, filename);
+  char *const *argv = (char *const *)c->GPR3;
+  char *const *envp = (char *const *)c->GPR4;
+
+  context_uload(current, filename, argv, envp);
 
   c -> GPRx = 0;
+
+  switch_boot_pcb();
+  yield();
 }
 
 static void SYS_Exit(Context *c) {
@@ -156,7 +164,7 @@ static void SYS_Gettimeofday(Context *c) {
   c -> GPRx = 0;
 }
 
-void do_syscall(Context *c) {
+Context *do_syscall(Context *c) {
   uintptr_t a[4];
   a[0] = c->GPR1;
   // a[1] = c->GPR2;
@@ -176,4 +184,6 @@ void do_syscall(Context *c) {
     case EXECVE      : SYS_Execve(c); break;
     default: panic("Unhandled syscall ID = %d", a[0]);
   }
+
+  return c;
 }

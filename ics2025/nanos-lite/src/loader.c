@@ -46,11 +46,16 @@ void naive_uload(PCB *pcb, const char *filename) {
   ((void(*)())entry) ();
 }
 
+const int pageSize = 4096;
+
 void context_uload(PCB *pcb, const char *filename, char *const argv[], char *const envp[]) {
   uintptr_t entry = loader(pcb, filename);
+
   pcb->cp = ucontext(NULL, (Area){pcb->stack, pcb->stack + STACK_SIZE}, (void *)entry);
 
-  char *pointer = heap.end;
+  char *ustack = new_page(8);
+  char *pointer = ustack + pageSize * 8;
+  
   int argc = 0, envc = 0;
   while (argv && argv[argc]) ++argc;
   while (envp && envp[envc]) ++envc;

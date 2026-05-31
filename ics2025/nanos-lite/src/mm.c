@@ -3,7 +3,7 @@
 static void *pf = NULL;
 
 void* new_page(size_t nr_page) {
-  return NULL;
+  return malloc(1024 * 4 * nr_page);
 }
 
 #ifdef HAS_VME
