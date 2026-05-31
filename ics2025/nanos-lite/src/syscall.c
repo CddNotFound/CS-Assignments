@@ -32,7 +32,7 @@ typedef struct {
 
 extern void switch_boot_pcb() ;
 
-static void SYS_Execve(Context *c) {
+static Context *SYS_Execve(Context *c) {
 #ifdef CONFIG_STRACE
   Log("System Call: Execve.\n");
 #endif
@@ -45,9 +45,7 @@ static void SYS_Execve(Context *c) {
   context_uload(current, filename, argv, envp);
 
   c -> GPRx = 0;
-
-  switch_boot_pcb();
-  yield();
+  return current->cp;
 }
 
 static void SYS_Exit(Context *c) {
@@ -172,16 +170,16 @@ Context *do_syscall(Context *c) {
   // a[3] = c->GPR4;
 
   switch (a[0]) {
-    case EXIT        : SYS_Exit(c);  break;
-    case YIELD       : SYS_Yield(c); break;
-    case WRITE       : SYS_Write(c); break;
-    case BRK         : SYS_Brk(c);   break;
-    case READ        : SYS_Read(c);  break;
-    case CLOSE       : SYS_Close(c); break;
-    case OPEN        : SYS_Open(c);  break;
-    case LSEEK       : SYS_Lseek(c); break;
-    case GETTIMEOFDAY: SYS_Gettimeofday(c); break;
-    case EXECVE      : SYS_Execve(c); break;
+    case EXIT        :     SYS_Exit(c);         break;
+    case YIELD       :     SYS_Yield(c);        break;
+    case WRITE       :     SYS_Write(c);        break;
+    case BRK         :     SYS_Brk(c);          break;
+    case READ        :     SYS_Read(c);         break;
+    case CLOSE       :     SYS_Close(c);        break;
+    case OPEN        :     SYS_Open(c);         break;
+    case LSEEK       :     SYS_Lseek(c);        break;
+    case GETTIMEOFDAY:     SYS_Gettimeofday(c); break;
+    case EXECVE      : c = SYS_Execve(c);       break;
     default: panic("Unhandled syscall ID = %d", a[0]);
   }
 
