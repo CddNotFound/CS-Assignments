@@ -26,10 +26,15 @@ void init_proc() {
 
   // load program here
 
-  naive_uload(NULL, "/bin/nterm");
+  context_kload(&pcb[0], hello_fun, (void *)1);
+  context_kload(&pcb[1], hello_fun, (void *)2);
+  switch_boot_pcb();
 
+  naive_uload(NULL, "/bin/nterm");
 }
 
 Context* schedule(Context *prev) {
-  return NULL;
+  current->cp = prev;
+  current = (current == &pcb[0] ? &pcb[1] : &pcb[0]);
+  return current->cp;
 }
