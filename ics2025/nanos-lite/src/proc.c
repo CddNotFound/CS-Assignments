@@ -27,7 +27,7 @@ void init_proc() {
   // load program here
 
   context_kload(&pcb[0], (void *)hello_fun, (void *)114514);
-  context_uload(&pcb[1], "/bin/exec-test", (char *[]){"/bin/exec-test", "--skip", "message", NULL}, (char *[]){"PATH=*", "INST=r|m -rf ~/PATH", NULL});
+  context_uload(&pcb[1], "/bin/pal", (char *[]){"/bin/pal", "--skip", "message", NULL}, (char *[]){"PATH=*", "INST=r|m -rf ~/PATH", NULL});
   switch_boot_pcb();
   yield();
 
