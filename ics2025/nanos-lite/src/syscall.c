@@ -32,15 +32,26 @@ typedef struct {
 
 extern void switch_boot_pcb() ;
 
+static char oriEnvp[128][128];
+static char *envpAddr[128];
+static int envc = 0;
+static bool envInit = 0;
+
 static Context *SYS_Execve(Context *c) {
 #ifdef CONFIG_STRACE
   Log("System Call: Execve.\n");
 #endif
   // printf("Next file: %s\n", (char *)c->GPR2);
-
+  
   char *filename = (char *)c->GPR2;
   char *const *argv = (char *const *)c->GPR3;
   char *const *envp = (char *const *)c->GPR4;
+  
+  if (!envInit) {
+    while (envp && envp[envc]) { ++envc; }
+    for (int i = 0; i < envc; i++) { strcpy(oriEnvp[i], envp[i]); envpAddr[i] = oriEnvp[i]; }
+    envInit = true;
+  }
 
   context_uload(current, filename, argv, envp);
 
@@ -48,18 +59,22 @@ static Context *SYS_Execve(Context *c) {
   return current->cp;
 }
 
-static void SYS_Exit(Context *c) {
+static Context *SYS_Exit(Context *c) {
 #ifdef CONFIG_STRACE
   Log("System Call: exit.\n");
 #endif
 
   // halt(c->GPR2);
   char *filename = "/bin/nterm";
+  char *argv[] = {"/bin/nterm", NULL};
   Context Menu = *c;
   Menu.GPR2 = (uintptr_t)filename;
-  SYS_Execve(&Menu);
-
+  Menu.GPR3 = (uintptr_t)argv;
+  Menu.GPR4 = (uintptr_t)envpAddr;
+  Context *ret = SYS_Execve(&Menu);
   c->GPRx = 0;
+
+  return ret;
 }
 
 static void SYS_Yield(Context *c) {
@@ -170,7 +185,7 @@ Context *do_syscall(Context *c) {
   // a[3] = c->GPR4;
 
   switch (a[0]) {
-    case EXIT        :     SYS_Exit(c);         break;
+    case EXIT        : c = SYS_Exit(c);         break;
     case YIELD       :     SYS_Yield(c);        break;
     case WRITE       :     SYS_Write(c);        break;
     case BRK         :     SYS_Brk(c);          break;

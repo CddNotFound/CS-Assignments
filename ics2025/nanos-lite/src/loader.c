@@ -49,30 +49,37 @@ void naive_uload(PCB *pcb, const char *filename) {
 const int pageSize = 4096;
 
 void context_uload(PCB *pcb, const char *filename, char *const argv[], char *const envp[]) {
-  uintptr_t entry = loader(pcb, filename);
+  char tmpFilename[100];
+  strcpy(tmpFilename, filename);
+  int argc = 0, envc = 0;
+  while (argv && argv[argc]) ++argc;
+  while (envp && envp[envc]) ++envc;
+  char tmpArgv[argc][128];
+  char tmpEnvp[envc][128];
+  for (int i = 0; i < argc; i++) { strcpy(tmpArgv[i], argv[i]); }
+  for (int i = 0; i < envc; i++) { strcpy(tmpEnvp[i], envp[i]); }
+
+  uintptr_t entry = loader(pcb, tmpFilename);
 
   pcb->cp = ucontext(NULL, (Area){pcb->stack, pcb->stack + STACK_SIZE}, (void *)entry);
 
   char *ustack = new_page(8);
   char *pointer = ustack + pageSize * 8;
   
-  int argc = 0, envc = 0;
-  while (argv && argv[argc]) ++argc;
-  while (envp && envp[envc]) ++envc;
 
   char *argvAddr[argc];
   char *envpAddr[envc];
 
   for (int i = 0; i < argc; i++) {
-    int len = strlen(argv[i]) + 1;
+    int len = strlen(tmpArgv[i]) + 1;
     pointer -= len;
-    strcpy(pointer, argv[i]);
+    strcpy(pointer, tmpArgv[i]);
     argvAddr[i] = pointer;
   }
   for (int i = 0; i < envc; i++) {
-    int len = strlen(envp[i]) + 1;
+    int len = strlen(tmpEnvp[i]) + 1;
     pointer -= len;
-    strcpy(pointer, envp[i]);
+    strcpy(pointer, tmpEnvp[i]);
     envpAddr[i] = pointer;
   }
 

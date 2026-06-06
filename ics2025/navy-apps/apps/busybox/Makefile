@@ -2,7 +2,7 @@ REPO_PATH = repo
 CONFIG_FILE = config/nanos-lite.config
 PATCH_FILE = $(abspath patch/diff.patch)
 ifeq ($(wildcard repo/include/busybox.h),)
-  $(shell git clone --depth=1 -b 1_32_stable git://git.busybox.net/busybox $(REPO_PATH))
+  $(shell git clone --depth=1 -b 1_32_stable https://git.busybox.net/busybox $(REPO_PATH))
   $(shell cd $(REPO_PATH) && git apply $(PATCH_FILE))
   $(shell cp $(CONFIG_FILE) $(REPO_PATH)/.config)
 endif
@@ -17,25 +17,28 @@ CFLAGS += -I$(WORK_DIR)/include/navy/ -D__GLIBC__ -fdata-sections -ffunction-sec
 comma = ,
 LDFLAGS := $(addprefix -Wl$(comma), $(LDFLAGS))
 export LDFLAGS
-export LINKAGE
+# export LINKAGE
 endif
 
 export CFLAGS
 export CROSS_COMPILE
+unexport LINKAGE
+
+BUSYBOX_MAKE = $(MAKE) -C $(REPO_PATH) LINKAGE="$(LINKAGE)"
 
 # The busybox Makefile can not correctly handle the dependency when
 # $(LINKAGE) are updated. If it is the case, perform a fresh build.
 $(APP): force;
-	$(MAKE) -C $(REPO_PATH)
+	$(BUSYBOX_MAKE)
 	cp $(REPO_PATH)/busybox $@
 
 force: ;
 
 menuconfig:
-	$(MAKE) -C $(REPO_PATH) $@
+	$(BUSYBOX_MAKE) $@
 
 install:
-	$(MAKE) -C $(REPO_PATH) CONFIG_PREFIX=$(NAVY_HOME)/fsimg $@
+	$(BUSYBOX_MAKE) CONFIG_PREFIX=$(NAVY_HOME)/fsimg $@
 
 clean: clean-busybox
 

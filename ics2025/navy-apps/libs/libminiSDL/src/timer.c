@@ -1,6 +1,7 @@
 #include <NDL.h>
 #include <sdl-timer.h>
 #include <stdio.h>
+#include <SDL.h>
 
 uint32_t startTime = 0;
 
