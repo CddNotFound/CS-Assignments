@@ -53,6 +53,13 @@ static Context *SYS_Execve(Context *c) {
     envInit = true;
   }
 
+  int fd = fs_open(filename, 0, 0);
+  if (fd < 0) {
+    c->GPRx = -2;
+    return c;
+  }
+  fs_close(fd);
+
   context_uload(current, filename, argv, envp);
 
   c -> GPRx = 0;

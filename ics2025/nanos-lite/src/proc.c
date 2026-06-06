@@ -30,7 +30,7 @@ void init_proc() {
   // load program here
 
   context_kload(&pcb[0], (void *)hello_fun, (void *)114514);
-  context_uload(&pcb[1], "/bin/nterm", (char *[]){"nterm", NULL}, (char *[]){"PATH=/bin", "SecondPath=QAQ", NULL});
+  context_uload(&pcb[1], "/bin/nterm", (char *[]){"nterm", NULL}, (char *[]){"PATH=/bin:/usr/bin:/QAQ", "SecondPath=QAQ", NULL});
   // context_uload(&pcb[1], "/bin/exec-test", (char *[]){"/bin/exec-test", "ls", "message", NULL}, (char *[]){"PATH=*", "INST=r|m -rf ~/PATH", NULL});
   switch_boot_pcb();
   yield();
